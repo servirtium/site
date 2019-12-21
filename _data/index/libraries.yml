@@ -1,0 +1,6 @@
+# libraries section data
+
+label: Readiness for use
+id : cs
+aspects: Java, Python, Ruby, C#, Go, NodeJS, Rust
+percentage: 95, 25, 0, 0, 0, 0, 0

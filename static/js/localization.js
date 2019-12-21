@@ -10,7 +10,7 @@ $(document).ready(function() {
     $('.i18container').i18n();
     $('#i18_navbar').i18n();
     $('#i18_about_servirtium').i18n();
-    $('#i18_skills').i18n();
+    $('#i18_libraries').i18n();
     $('#i18_projects').i18n();
     $('#i18_history').i18n();
     $('#i18_blog').i18n();

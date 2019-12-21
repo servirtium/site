@@ -12,10 +12,10 @@
   tpl: history.html
   css: timeline
 
-- id: skills
-  i18n: nav.skills
-  name: Skills
-  tpl: skills.html
+- id: libraries
+  i18n: nav.libraries
+  name: Libraries
+  tpl: libraries.html
   css: team
 
 - id: projects
