@@ -1,0 +1,32 @@
+# history section data
+# if you don't have language feature(language.yml is empty), ignore "i18n" items
+- name:
+    detail: Servirtium beta Released
+  desc:
+    detail: "Markdown record/playbck syntax, a Java library, and examples: released"
+  date:
+    detail: Autumn 2019
+  job:
+    detail: Servirtium-Java
+  icon: fa-plus-square
+  present: true
+
+- name:
+    detail: Service Virtualization the way it was
+  desc:
+    detail: Centralized services (or a local daemon) that would record/playback (or manually stub/mock) HTTP services that stored in JSON (or YAML) in source-control (or a centralizaed DB)
+  date:
+    detail: 2010 - 2019
+  job:
+    detail: Legacy SV technologies
+  icon: fa-plus-square
+
+- name:
+    detail: Before Service Virtualization
+  desc:
+    detail: "Your tests had to hit a 'shared integration' server's endpoints, where that always involved luck and goodwill that it was a) fast, b) reliable, and c) the version you needed it to be"
+  date:
+    detail: 1993 - 2010
+  job:
+    detail: Before SV
+  icon: fa-plus-square
