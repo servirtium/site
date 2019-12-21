@@ -6,21 +6,14 @@
 - name: Python
   href: /python/
 
-- name: Linux
-  href: /linux/
+- name: Java
+  href: /java/
 
-- name: HTML
-  href: /html/
+- name: .NET
+  href: /DotNet/
 
-- name: Database
-  href: /database/
+- name: Ruby
+  href: /ruby/
 
-- name: Mac
-  href: /mac/
-
-- name: Life
-  href: /life/
-
-# Don't display donation page: change donation to off at file '_config.yml'
-- name: Donate
-  href: /donate/
+- name: Go
+  href: /go/
