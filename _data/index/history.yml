@@ -24,7 +24,7 @@
 - name:
     detail: Before Service Virtualization
   desc:
-    detail: "Your tests had to hit a 'shared integration' server's endpoints, where that always involved luck and goodwill that it was a) fast, b) reliable, and c) the version you needed it to be"
+    detail: "Your tests had to hit a shared 'integration' server's endpoints, where that always involved luck and some goodwill that the service was a) fast, b) 'up', c) consistent, and d) the version of teh service you needed it to be".
   date:
     detail: 1993 - 2010
   job:
