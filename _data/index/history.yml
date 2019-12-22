@@ -14,7 +14,7 @@
 - name:
     detail: Service Virtualization the way it was
   desc:
-    detail: Centralized services (or a local daemon) that would record/playback (or manually stub/mock) HTTP services that stored recordings in JSON (or YAML) in source-control (or a centralizaed DB)
+    detail: "Centralized services (or a local daemon) that would record/playback (or manually stub/mock) HTTP services that stored recordings in JSON (or YAML) in source-control (or a centralized DB)"
   date:
     detail: 2010 - 2019
   job:
@@ -24,7 +24,7 @@
 - name:
     detail: Before Service Virtualization
   desc:
-    detail: "Your tests had to hit a shared 'integration' server's endpoints, where that always involved luck and some goodwill that the service was a) fast, b) 'up', c) consistent, and d) the version of teh service you needed it to be".
+    detail: "Your tests had to hit a shared 'integration' server's endpoints, where that always involved luck and some goodwill that the service was fast, online, consistent, and the version you wanted"
   date:
     detail: 1993 - 2010
   job:
