@@ -42,6 +42,12 @@
   tpl: projects.html
   css: project
 
+- id: projects2
+  i18n: nav.projects2
+  name: Example Projects
+  tpl: projects2.html
+  css: project
+
 - id: blog
   i18n: nav.blog
   name: Blog
