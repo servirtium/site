@@ -10,12 +10,12 @@ url: https:/servirtium.dev/  # url should be 'http://<github_username>.github.io
 img_path: /site/static/assets/img/blog  # url should be '/homepage/static/assets/img/blog' as before
 
 # author -- index page "about servirtium" section
-author:  # change following line to your infomation.
+author:  # change following line to your information.
   name: GitHub  # Be used at blog posts' author.
   first_name: Hub  # Be used at index page about servirtium section.
   last_name: Git  # Be used at index page about servirtium section.
   avatar: /static/assets/img/landing/avatar.jpg  # upload your avatar at directory and edit it.
-  github_username: ervirtium  # Leave blank if you don't have now
+  github_username: servirtium  # Leave blank if you don't have now
   linkedin_id: # Leave blank if you don't have now
   facebook_username:  # Leave blank if you don't have now
   twitter_username:  # Leave blank if you don't have now

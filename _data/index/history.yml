@@ -14,7 +14,7 @@
 - name:
     detail: Service Virtualization the way it was
   desc:
-    detail: Centralized services (or a local daemon) that would record/playback (or manually stub/mock) HTTP services that stored in JSON (or YAML) in source-control (or a centralizaed DB)
+    detail: Centralized services (or a local daemon) that would record/playback (or manually stub/mock) HTTP services that stored recordings in JSON (or YAML) in source-control (or a centralizaed DB)
   date:
     detail: 2010 - 2019
   job:

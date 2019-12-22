@@ -7,11 +7,25 @@
   gh_user: servirtium
   repo: servirtium-java
   img: /static/assets/img/landing/java.png
-  desc: This project is other's project. I use another request to get repo's information.
+  desc: A Java library for Servertium
 
 - name: servirtium-python
   i18n: servirtium-python
   gh_user: servirtium
   repo: servirtium-python
   img: /static/assets/img/landing/python.png
-  desc: This project is other's project. I use another request to get repo's information.
+  desc: A Python library for Servertium (work in progress)
+
+- name: servirtium-ruby
+  i18n: servirtium-ruby
+  gh_user: servirtium
+  repo: servirtium-ruby
+  img: /static/assets/img/landing/ruby.png
+  desc: A Ruby library for Servertium (to be started)
+
+- name: servirtium-dotnet
+  i18n: servirtium-dotnet
+  gh_user: servirtium
+  repo: servirtium-dotnet
+  img: /static/assets/img/landing/dotnet.png
+  desc: A .NET library for Servertium (to be started)
