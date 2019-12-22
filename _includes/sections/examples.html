@@ -1,0 +1,34 @@
+<div class="container" id="i18_examples">
+
+    <div class="row">
+        <div class="col-lg-8 col-lg-offset-2 text-left m-t-lg m-b-lg wow zoomIn">
+            <h1><a id="user-content-example-of-the-servirtium-markdown-format" class="anchor" aria-hidden="true" href="#example-of-the-servirtium-markdown-format"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a> Example of the Servirtium Markdown format</h1>
+            <p>Here's a screen-shot of some raw markdown source:</p>
+            <p><a target="_blank" rel="noopener noreferrer" href="https://user-images.githubusercontent.com/82182/67832718-7092e380-fada-11e9-94a8-58dcc82810cb.png"><img src="https://user-images.githubusercontent.com/82182/67832718-7092e380-fada-11e9-94a8-58dcc82810cb.png" alt="2019-10-30_0559" style="max-width:100%;"></a></p>
+            <p>(non-screenshot actual source: <a href="https://raw.githubusercontent.com/servirtium/README/master/example1.md" rel="nofollow">https://raw.githubusercontent.com/servirtium/README/master/example1.md</a>)</p>
+            <p>Here's what GitHub (for one) renders that like:</p>
+            <p><a target="_blank" rel="noopener noreferrer" href="https://user-images.githubusercontent.com/82182/67832562-f2ced800-fad9-11e9-9bbf-8a366ad7c938.png"><img src="https://user-images.githubusercontent.com/82182/67832562-f2ced800-fad9-11e9-9bbf-8a366ad7c938.png" alt="2019-10-30_0555" style="max-width:100%;"></a></p>
+            <p>That's the whole point of this format that's human-inspectable in raw form and that your code-portal renders in a pretty way too.
+                If your code portal is GitHub, then 'pretty' is true.</p>
+            <p>(non-screenshot actual rendered file: <a href="https://github.com/servirtium/README/blob/master/example1.md">https://github.com/servirtium/README/blob/master/example1.md</a>)</p>
+            <p>... and you'd be storing that VCS as you would your automated tests.</p>
+            <h2><a id="user-content-markdown-syntax-explained" class="anchor" aria-hidden="true" href="#markdown-syntax-explained"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a> Markdown Syntax Explained</h2>
+            <h3><a id="user-content-multiple-interactions-catered-for" class="anchor" aria-hidden="true" href="#multiple-interactions-catered-for"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a> Multiple Interactions Catered For</h3>
+            <p>Each interaction is denoted via a <strong>Level 2 Markdown Heading</strong>. e.g. <code>## Interaction N: &lt;METHOD&gt; &lt;PATH-FROM-ROOT&gt;</code></p>
+            <p><code>N</code> starts as 0, and goes up depending on how many interactions there were in the conversation.</p>
+            <p><code>&lt;METHOD&gt;</code> is GET or POST (or any standard HTML or non standard method/verb name).</p>
+            <p><code>&lt;PATH-FROM-ROOT&gt;</code> is the path without the domain &amp; port. e.g. /card/addTo.doIt</p>
+            <h3><a id="user-content-request-and-reply-details-per-interaction" class="anchor" aria-hidden="true" href="#request-and-reply-details-per-interaction"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a> Request And Reply Details Per Interaction</h3>
+            <p>Each interaction has four sections denoted by a *<em>Level 3 Markdown headers</em></p>
+            <ol>
+                <li>The request headers going from the client to the HTTP server, denoted with a heading like so <code>### Request headers recorded for playback:</code></li>
+                <li>The request body going from the client to the HTTP server (if applicable - GET does not use this), denoted  with a heading like so <code>### Request body recorded for playback (&lt;MIME-TYPE&gt;):</code>. And <code>&lt;MIME-TYPE&gt;</code> is something like <code>application/json</code></li>
+                <li>The response headers coming back from the HTTP server to the client, denoted with a heading like so <code>### Response headers recorded for playback:</code></li>
+                <li>The response body coming back from the HTTP server to the client (some HTTP methods do not use this), denoted with a heading like so <code>### Response body recorded for playback (&lt;STATUS-CODE&gt;: &lt;MIME-TYPE&gt;):</code></li>
+            </ol>
+            <p>Within each of those there is a single Markdown code block (three back-ticks) with the details of each.  The lines in that
+                block may be reformatted depending on the settings of the recorder. If binary, then there is a Base64
+                sequence instead (admittedly not so pretty on the eye).</p>
+        </div>
+    </div>
+</div>

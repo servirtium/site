@@ -12,6 +12,24 @@
   tpl: history.html
   css: timeline
 
+- id: what-is-servirtium
+  i18n: nav.what_is_servirtium
+  name: What Is
+  tpl: what-is.html
+  css:
+
+- id: examples
+  i18n: nav.examples
+  name: Examples
+  tpl: examples.html
+  css:
+
+- id: discussion
+  i18n: nav.discussion
+  name: Discussion
+  tpl: discussion.html
+  css:
+
 - id: libraries
   i18n: nav.libraries
   name: Libraries
