@@ -14,19 +14,19 @@
 
 - id: what-is-servirtium
   i18n: nav.what_is_servirtium
-  name: What Is
+  name: What It Is
   tpl: what-is.html
   css:
 
 - id: examples
   i18n: nav.examples
-  name: Examples
+  name: '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="14" viewBox="0 0 208 128"><rect width="198" height="118" x="5" y="5" ry="10" stroke="white" stroke-width="10" fill="none"/><path fill="white" d="M30 98V30h20l20 25 20-25h20v68H90V59L70 84 50 59v39zm125 0l-30-33h20V30h20v35h20z"/></svg> Examples'
   tpl: examples.html
   css:
 
 - id: discussion
   i18n: nav.discussion
-  name: Discussion
+  name: '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="14" viewBox="0 0 208 128"><rect width="198" height="118" x="5" y="5" ry="10" stroke="white" stroke-width="10" fill="none"/><path fill="white" d="M30 98V30h20l20 25 20-25h20v68H90V59L70 84 50 59v39zm125 0l-30-33h20V30h20v35h20z"/></svg> Discussion'
   tpl: discussion.html
   css:
 
@@ -38,7 +38,7 @@
 
 - id: projects
   i18n: nav.projects
-  name: Projects
+  name: Implementation
   tpl: projects.html
   css: project
 
