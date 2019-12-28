@@ -9,7 +9,7 @@
                 <p><a href="https://en.wikipedia.org/wiki/Technology_Compatibility_Kit">Technology Compatibility Kit is
                     best known as a 2004 source set that Sun released to allow (subject to license) other implementation
                     of Java.</a>. For Servirtium, a previously recorded set of HTTP interactions would be stored in
-                    souce control adjacent to the tests they correspond to and used in TWO ways: </p>
+                    source-control adjacent to the tests they correspond to and used in TWO ways: </p>
                 <div class="col-lg-12 text-center">
                     <svg xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns="http://www.w3.org/2000/svg"
                          xmlns:xl="http://www.w3.org/1999/xlink" version="1.1"
@@ -268,19 +268,23 @@
                     </svg>
                 </div>
                 <p>
-                    Devs, test engineers and the CI-related automated jobs are running service tests in playback mode
+                    Developers, test engineers and the CI-related automated jobs are running service tests in playback mode
                     <strong>thousands or millions of times a day</strong>, and always pass quickly. If they fail that's something that can
                     be fixed before commit/push and integration into trunk/master.</p>
                 <p>
                     Because something could incompatible versus the "real" service an <strong>hourly or daily</strong> job is run in the same
                     build infrastructure that runs the same tests in record mode. Those tests could fail, in which case
-                    the job fails an a developer investiges. If the service is flaky, this job can be run
+                    the job fails an a developer investigates. If the service is flaky, this job can be run
                     with <code>retries=10</code>
                     mode (whatever that is for the test framework) and may be coerced into passing. Sometimes this is
                     needed because the vendor's infrastructure for "sandbox" is not as reliable as their production
                     service. If the tests pass as a suite, one last check is made on the Servirtium recordings
                     (Servirtese?). That check is <code>git diff</code> and if there are any, then the job fails and a
                     developer would investigate.
+                </p>
+                <p>
+                    Oh and yes, a Markdown representation of one or more HTTP interactions is the easiest for eyeball
+                    diffing of the changed recording related to the test failure in question.
                 </p>
             </div>
         </div>
