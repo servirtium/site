@@ -6,10 +6,11 @@
                 <div class="col-lg-12 text-center">
                     <h1><span data-i18n="tcks.tcks">TCKs - What's that about?</span></h1>
                 </div>
-                <p><a href="https://en.wikipedia.org/wiki/Technology_Compatibility_Kit">Technology Compatibility Kit is
-                    best known as a 2004 source set that Sun released to allow (subject to license) other implementation
-                    of Java.</a>. For Servirtium, a previously recorded set of HTTP interactions would be stored in
-                    source-control adjacent to the tests they correspond to and used in TWO ways: </p>
+                <p>Technology Compatibility Kit is
+                    best known as a <a href="https://en.wikipedia.org/wiki/Technology_Compatibility_Kit">2004 source set
+                        that Sun released to allow (subject to license) other implementation
+                        of Java</a>. For Servirtium, a previously recorded set of HTTP interactions would be stored in
+                    source-control adjacent to the tests they correspond to and used in TWO broad ways: </p>
                 <div class="col-lg-12 text-center">
                     <svg xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns="http://www.w3.org/2000/svg"
                          xmlns:xl="http://www.w3.org/1999/xlink" version="1.1"
@@ -174,7 +175,7 @@
                                         </tspan>
                                         <tspan font-family="Helvetica Neue" font-size="16" font-weight="400"
                                                fill="black"
-                                               x="17.757998" y="144.13599">different to before
+                                               x="5.757998" y="144.13599">different than before
                                         </tspan>
                                     </text>
                                 </g>
@@ -268,11 +269,14 @@
                     </svg>
                 </div>
                 <p>
-                    Developers, test engineers and the CI-related automated jobs are running service tests in playback mode
-                    <strong>thousands or millions of times a day</strong>, and always pass quickly. If they fail that's something that can
+                    Developers, test engineers and the CI-related automated jobs are running service tests in playback
+                    mode
+                    <strong>thousands or millions of times a day</strong>, and always pass quickly. If they fail that's
+                    something that can
                     be fixed before commit/push and integration into trunk/master.</p>
                 <p>
-                    Because something could incompatible versus the "real" service an <strong>hourly or daily</strong> job is run in the same
+                    Because something could incompatible versus the "real" service an <strong>hourly or daily</strong>
+                    job is run in the same
                     build infrastructure that runs the same tests in record mode. Those tests could fail, in which case
                     the job fails an a developer investigates. If the service is flaky, this job can be run
                     with <code>retries=10</code>
