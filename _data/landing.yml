@@ -48,6 +48,12 @@
   tpl: demos.html
   css: project
 
+- id: tcks
+  i18n: nav.tck
+  name: TCKs
+  tpl: tcks.html
+  css: project
+
 - id: blog
   i18n: nav.blog
   name: Blog
