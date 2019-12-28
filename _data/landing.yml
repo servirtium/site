@@ -30,22 +30,22 @@
   tpl: discussion.html
   css:
 
-- id: libraries
-  i18n: nav.libraries
-  name: Libraries
-  tpl: libraries.html
+- id: readiness
+  i18n: nav.readiness
+  name: Library Readiness
+  tpl: readiness.html
   css: team
 
-- id: projects
-  i18n: nav.projects
+- id: implementations
+  i18n: nav.implementations
   name: Implementation
-  tpl: projects.html
+  tpl: implementations.html
   css: project
 
-- id: projects2
-  i18n: nav.projects2
+- id: demos
+  i18n: nav.demos
   name: Example Projects
-  tpl: projects2.html
+  tpl: demos.html
   css: project
 
 - id: blog
