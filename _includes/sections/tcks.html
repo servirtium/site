@@ -269,10 +269,10 @@
                 </div>
                 <p>
                     Devs, test engineers and the CI-related automated jobs are running service tests in playback mode
-                    tousands or millions of times a day, and always pass quickly. If they fail that's something that can
+                    <strong>thousands or millions of times a day</strong>, and always pass quickly. If they fail that's something that can
                     be fixed before commit/push and integration into trunk/master.</p>
                 <p>
-                    Because something could incompatible versus the "real" service an hourly* job is run in the same
+                    Because something could incompatible versus the "real" service an <strong>hourly or daily</strong> job is run in the same
                     build infrastructure that runs the same tests in record mode. Those tests could fail, in which case
                     the job fails an a developer investiges. If the service is flaky, this job can be run
                     with <code>retries=10</code>
