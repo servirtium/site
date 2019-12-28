@@ -38,7 +38,7 @@
 
 - id: implementations
   i18n: nav.implementations
-  name: Implementation
+  name: Implementations
   tpl: implementations.html
   css: project
 
