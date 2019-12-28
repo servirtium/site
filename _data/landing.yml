@@ -32,7 +32,7 @@
 
 - id: readiness
   i18n: nav.readiness
-  name: Library Readiness
+  name: Tech Readiness
   tpl: readiness.html
   css: team
 
@@ -44,7 +44,7 @@
 
 - id: demos
   i18n: nav.demos
-  name: Example Projects
+  name: Demos
   tpl: demos.html
   css: project
 

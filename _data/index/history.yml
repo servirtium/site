@@ -3,7 +3,7 @@
 - name:
     detail: Servirtium beta Released
   desc:
-    detail: "Markdown record/playback syntax, a Java library, and examples: released. The key git-diff leveraging \"TCK\" aspect talked about too"
+    detail: "Markdown record/playback syntax, a Java library, and examples: released. The key git-diff leveraging \"TCK\" (see below) aspect talked about too"
   date:
     detail: Autumn 2019
   job:
