@@ -140,7 +140,7 @@
                     (Servirtese?). That check is <code>git diff</code> and if there are any, then the job fails and a
                     developer would investigate.
                 </p>
-                <div style="margin-left:40px"><pre><code># Your regular compile and invocation
+                <div style="margin-left:40px; margin-right:40px"><pre><code># Your regular compile and invocation
 # of pertinent service tests **here**
 theDiff=$(git diff --unified=0 path/to/module/src/test/mocks/<wbr>)
 if [[ -z "${theDiff}" ]]
