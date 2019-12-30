@@ -141,7 +141,10 @@
                     any, then the job deliberately fails and a developer would be asked to investigate.
                 </p>
                 <div style="margin-left:10%; margin-right:10%"><pre><code># Your regular compile and invocation
-# of pertinent service tests **here**
+# of pertinent service tests here:
+your_compile.sh
+your_test_suite_invocation.sh
+
 theDiff=$(git diff --unified=0 path/to/module/src/test/mocks/<wbr>)
 if [[ -z "${theDiff}" ]]
 then
