@@ -136,11 +136,11 @@
                     with <code>retries=10</code>
                     mode (whatever that is for the test framework) and may be coerced into passing. Sometimes this is
                     needed because the vendor's infrastructure for "sandbox" is not as reliable as their production
-                    service. If the tests pass as a suite, one last check is made on the Servirtium recordings
-                    (Servirtese?). That check is <code>git diff</code> and if there are any, then the job fails and a
-                    developer would investigate.
+                    service. If the test suite passes, one last check is made on the Servirtium recordings
+                    (Servirtese?) before that build completes. That check is <code>git diff</code> and if there are
+                    any, then the job deliberately fails and a developer would be asked to investigate.
                 </p>
-                <div style="margin-left:40px; margin-right:40px"><pre><code># Your regular compile and invocation
+                <div style="margin-left:10%; margin-right:10%"><pre><code># Your regular compile and invocation
 # of pertinent service tests **here**
 theDiff=$(git diff --unified=0 path/to/module/src/test/mocks/<wbr>)
 if [[ -z "${theDiff}" ]]
