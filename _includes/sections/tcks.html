@@ -165,8 +165,16 @@ fi<br></code></pre></div>
                     diffing of the changed recording. Inneed, XML and payloads can be reformatted to be prettier still
                     in the markdown.
                 </p>
-                
+
                 <img src="/static/assets/img/landing/a_diff.png" style="max-width:100%;">
+
+                <p>
+                    In this case World Bank's Climate API responded one day with an extra "Keep Alive" header. And
+                    the developer investigating decided it was probably OK to assume that it would be a regular
+                    feature of the API.  XML/JSON payload differences can be multi-line of course. Committing the
+                    change (after a dev-workstation reproduction, means the same thing will not cause a TCK failure
+                    in the future.
+                </p>
             </div>
         </div>
     </div>
