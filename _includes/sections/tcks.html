@@ -142,8 +142,12 @@
                 </p>
                 <div style="margin-left:10%; margin-right:10%"><pre><code># Your regular compile and invocation
 # of pertinent service tests here:
-your_compile.sh
-your_test_suite_invocation.sh
+
+your_compile.sh # job could fail here
+your_test_suite_invocation.sh  # job could fail here, too
+
+# passed, so far, but one more job failure opportunity based on
+# differences in the recorded Servirtium Markdown (versus that committed)
 
 theDiff=$(git diff --unified=0 path/to/module/src/test/mocks/<wbr>)
 if [[ -z "${theDiff}" ]]
