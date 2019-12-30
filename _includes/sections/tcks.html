@@ -140,6 +140,19 @@
                     (Servirtese?). That check is <code>git diff</code> and if there are any, then the job fails and a
                     developer would investigate.
                 </p>
+                <div style="margin-left:40px"><pre><code># Your regular compile and invocation
+# of pertinent service tests **here**
+theDiff=$(git diff --unified=0 path/to/module/src/test/mocks/<wbr>)
+if [[ -z "${theDiff}" ]]
+then
+      echo " - No differences versus recorded interactions committed to Git, so that's good"
+
+else
+      echo " - There SHOULD BE no differences versus last TCK
+      echo "   recording, but there were - see build log :-(  "
+      echo "**** DIFF ****:${theDiff}."
+      exit 1
+fi<br></code></pre></div>
                 <p>
                     Oh and yes, a Markdown representation of one or more HTTP interactions is the easiest for eyeball
                     diffing of the changed recording related to the test failure in question.
