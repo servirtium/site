@@ -19,10 +19,3 @@
   repo: servirtium-ruby
   img: /static/assets/img/landing/ruby.png
   desc: A Ruby library for Servertium (to be started)
-
-- name: servirtium-dotnet
-  i18n: servirtium-dotnet
-  gh_user: servirtium
-  repo: servirtium-dotnet
-  img: /static/assets/img/landing/dotnet.png
-  desc: A .NET library for Servertium (to be started)

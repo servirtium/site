@@ -13,3 +13,10 @@
   img: /static/assets/img/landing/java.png
   desc: A Java example of Servertium using the WorldBank's Climate API
 
+- name: demo-ruby-climate-data-tck
+  i18n: demo-ruby-climate-data-tck
+  gh_user: servirtium
+  repo: demo-ruby-climate-data-tck
+  img: /static/assets/img/landing/ruby.png
+  desc: A Ruby example of Servertium using the WorldBank's Climate API (10% complete)
+
