@@ -17,15 +17,17 @@
                 the real service). If that service is flaky - keep re-running the test manually until the service is
                 non-flaky, and commit
                 that Servirtium-style markdown to source-control. Best practice is to configure the same test two have
-                two modes of
-                operation: 'direct' and 'recording' modes.</p>
+                two modes of operation: 'direct' and 'recording' modes.  This is <strong>not</strong> a caching idea
+                - it is deliberate
+                - you are explicitly recording while running a test, or not recording while running a test (and doing
+                direct to the service)</p>
             <p>Anyway, the recording ends up in the markdown described in a text file on your file system - which you'll
-                commit to
-                VCS alongside your tests.</p>
+                commit to VCS alongside your tests.</p>
             <h2><a id="user-content-playback-of-http-conversations" class="anchor" aria-hidden="true"
                    href="#playback-of-http-conversations"><span style="font-size: 65%">🔗</span></a> Playback of HTTP
                 conversations</h2>
-            <p>Those same markdown recordings are used in playback.</p>
+            <p>Those same markdown recordings are used in playback. Again an explicit mode - you're running in this mode
+                and it will fail if there are no recordings in the dir/file in source control.</p>
             <p>Playback itself will fail if the headers/body <strong>sent by the client to the real service</strong>
                 (through the Servirtium library)
                 are <strong>not</strong> the same they were when the recording was made. It is possible that
