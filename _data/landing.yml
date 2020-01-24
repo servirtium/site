@@ -6,12 +6,6 @@
   tpl: about.html
   css:
 
-- id: history
-  i18n: nav.history
-  name: History
-  tpl: history.html
-  css: timeline
-
 - id: what-is-servirtium
   i18n: nav.what_is_servirtium
   name: What It Is
@@ -23,6 +17,12 @@
   name: M⬇ Examples
   tpl: examples.html
   css:
+
+- id: demos
+  i18n: nav.demos
+  name: Demos
+  tpl: demos.html
+  css: project
 
 - id: discussion
   i18n: nav.discussion
@@ -42,17 +42,17 @@
   tpl: implementations.html
   css: project
 
-- id: demos
-  i18n: nav.demos
-  name: Demos
-  tpl: demos.html
-  css: project
-
 - id: tcks
   i18n: nav.tck
   name: TCKs
   tpl: tcks.html
   css: project
+
+- id: history
+  i18n: nav.history
+  name: History
+  tpl: history.html
+  css: timeline
 
 - id: blog
   i18n: nav.blog
