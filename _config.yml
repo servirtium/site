@@ -3,6 +3,7 @@
 # Website settings
 title: Servirtium
 description: Servirtium site
+permalink: /:year/:month/:day/:title:output_ext
 keywords: 
 # baseurl:  /nope # if you have suburl as homepage like '/homepage', please change it to '/homepage' and your repo's name should be 'homepage'
 url: https:/servirtium.dev/  # url should be 'http://<github_username>.github.io/homepage' as before
