@@ -4,7 +4,7 @@ title:  Ministry of Testing meetup talk
 date:   2019-07-24
 keywords: "video, meetup"
 categories: [meta]
-icon: youtube
+icon: fa-youtube
 ---
 
 Paul's second talk on Servirtium at a Ministry of Testing meetup in Edinburgh:
