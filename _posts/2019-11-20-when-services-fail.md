@@ -4,7 +4,7 @@ title:  When Services Fail
 date:   2019-11-15
 keywords: "video"
 categories: [meta]
-icon: icon-youtube
+icon: youtube
 ---
 
 In relation to the Climate-API demos, what happens in Servirtium when the upstream service is down?
