@@ -1,22 +1,22 @@
 
-- name: demo-python-climate-data-tck
-  i18n: demo-python-climate-data-tck
+- name: demo-python-climate-tck
+  i18n: demo-python-climate-tck
   gh_user: servirtium
-  repo: demo-python-climate-data-tck
+  repo: demo-python-climate-tck
   img: /static/assets/img/landing/python.png
   desc: A Python example of Servertium using the WorldBank's Climate API
 
-- name: demo-java-climate-data-tck
-  i18n: demo-java-climate-data-tck
+- name: demo-java-climate-tck
+  i18n: demo-java-climate-tck
   gh_user: servirtium
-  repo: demo-java-climate-data-tck
+  repo: demo-java-climate-tck
   img: /static/assets/img/landing/java.png
   desc: A Java example of Servertium using the WorldBank's Climate API
 
-- name: demo-ruby-climate-data-tck
-  i18n: demo-ruby-climate-data-tck
+- name: demo-ruby-climate-tck
+  i18n: demo-ruby-climate-tck
   gh_user: servirtium
-  repo: demo-ruby-climate-data-tck
+  repo: demo-ruby-climate-tck
   img: /static/assets/img/landing/ruby.png
   desc: A Ruby example of Servertium using the WorldBank's Climate API (10% complete)
 
