@@ -18,5 +18,12 @@
   gh_user: servirtium
   repo: demo-ruby-climate-tck
   img: /static/assets/img/landing/ruby.png
-  desc: A Ruby example of Servertium using the WorldBank's Climate API (10% complete)
+  desc: A Ruby example of Servertium using the WorldBank's Climate API (20% complete)
+
+- name: demo-kotlin-climate-tck
+  i18n: demo-kotlin-climate-tck
+  gh_user: http4k
+  repo: demo-kotlin-climate-tck
+  img: /static/assets/img/landing/kotlin.png
+  desc: A Kotlin example of Servertium using the WorldBank's Climate API
 
