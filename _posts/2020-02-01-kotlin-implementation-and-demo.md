@@ -1,14 +1,14 @@
 ---
 layout: post
-title:  Kotlin Implmentation And Demo
+title:  Kotlin Implementation And Demo
 date:   2020-02-01
 keywords: "kotlin"
-categories: [meta]
+categories: [implementation]
 icon: fa-rss
 ---
 
-David Denton made a Kotlin implementation as part of the larger `http4k` "Server as a Function"
-technology that he created. As well as that, two ClimateAPI demos - one that uses Kotlin with the 
+[David Denton](https://github.com/daviddenton) made a Kotlin implementation as part of the larger [http4k](https://www.http4k.org/) "Server as a Function"
+technology that he created for the JDK community. As well as that, two ClimateAPI demos - one that uses Kotlin with the 
 new library, and one that uses plain Java with the same Kotlin library.
 
 David's intention is to use and support this library going forward.
