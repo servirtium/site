@@ -12,10 +12,10 @@
   tpl: what-is.html
   css:
 
-- id: examples
-  i18n: nav.examples
-  name: M⬇ Examples
-  tpl: examples.html
+- id: markdown-format
+  i18n: nav.markdown-format
+  name: Markdown Format
+  tpl: markdown-format.html
   css:
 
 - id: demos
