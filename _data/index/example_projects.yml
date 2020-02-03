@@ -31,6 +31,6 @@
   i18n: demo-dotnet-climate-tck
   gh_user: stephenhand
   repo: servirtium-demo-dotnet-climate-tck
-  img: /static/assets/img/landing/kotlin.png
+  img: /static/assets/img/landing/dotnet.png
   desc: A C# example of Servertium using the WorldBank's Climate API
 

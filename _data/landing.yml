@@ -24,12 +24,6 @@
   tpl: demos.html
   css: project
 
-- id: discussion
-  i18n: nav.discussion
-  name: M⬇ Discussion
-  tpl: discussion.html
-  css:
-
 - id: readiness
   i18n: nav.readiness
   name: Tech Readiness
