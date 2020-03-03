@@ -34,3 +34,10 @@
   img: /static/assets/img/landing/dotnet.png
   desc: A C# example of Servertium using the WorldBank's Climate API
 
+- name: demo-dart-climate-tck
+  i18n: demo-dart-climate-tck
+  gh_user: servirtium
+  repo: servirtium-dart-climate-tck
+  img: /static/assets/img/landing/dart.png
+  desc: A Dart example of Servertium using the WorldBank's Climate API
+

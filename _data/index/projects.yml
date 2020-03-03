@@ -33,3 +33,10 @@
   repo: servirtium-ruby
   img: /static/assets/img/landing/ruby.png
   desc: A Ruby library for Servertium (to be started)
+
+- name: servirtium-dart
+  i18n: servirtium-dart
+  gh_user: servirtium
+  repo: servirtium-dart
+  img: /static/assets/img/landing/dart.png
+  desc: A Dart library for Servertium
