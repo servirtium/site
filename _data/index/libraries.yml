@@ -2,5 +2,5 @@
 
 label: Readiness for use
 id : cs
-aspects: Java, Python, Kotlin, Ruby, C#, Go, NodeJS, Rust, Swift, Dart
-percentage: 95, 70, 95, 70, 95, 5, 0, 0, 0, 85
+aspects: Java (legacy), Python, Kotlin, Ruby, C#, Go, NodeJS, Rust, Swift, Dart
+percentage: 95, 70, 100, 70, 100, 5, 0, 0, 0, 85
