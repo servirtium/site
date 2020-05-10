@@ -18,7 +18,7 @@
   gh_user: servirtium
   repo: servirtium-dotnet
   img: /static/assets/img/landing/dotnet.png
-  desc: A Kotlin library for Servertium
+  desc: A .NET Core library for Servertium
 
 - name: servirtium-python
   i18n: servirtium-python
