@@ -40,3 +40,17 @@
   repo: servirtium-dart
   img: /static/assets/img/landing/dart.png
   desc: A Dart library for Servertium
+
+- name: servirtium-rust
+  i18n: servirtium-rust
+  gh_user: servirtium
+  repo: servirtium-rust
+  img: /static/assets/img/landing/dart.png
+  desc: A Rust library for Servertium
+
+- name: servirtium-go
+  i18n: servirtium-go
+  gh_user: servirtium
+  repo: servirtium-go
+  img: /static/assets/img/landing/dart.png
+  desc: A Go library for Servertium
