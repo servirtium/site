@@ -41,3 +41,17 @@
   img: /static/assets/img/landing/dart.png
   desc: A Dart example of Servertium using the WorldBank's Climate API
 
+- name: demo-go-climate-tck
+  i18n: demo-go-climate-tck
+  gh_user: servirtium
+  repo: servirtium-go-climate-tck
+  img: /static/assets/img/landing/go.png
+  desc: A Go example of Servertium using the WorldBank's Climate API
+
+- name: demo-rust-climate-tck
+  i18n: demo-rust-climate-tck
+  gh_user: servirtium
+  repo: servirtium-rust-climate-tck
+  img: /static/assets/img/landing/rust.png
+  desc: A Rust example of Servertium using the WorldBank's Climate API
+
