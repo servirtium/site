@@ -45,12 +45,12 @@
   i18n: servirtium-rust
   gh_user: servirtium
   repo: servirtium-rust
-  img: /static/assets/img/landing/dart.png
+  img: /static/assets/img/landing/rust.png
   desc: A Rust library for Servertium
 
 - name: servirtium-go
   i18n: servirtium-go
   gh_user: servirtium
   repo: servirtium-go
-  img: /static/assets/img/landing/dart.png
+  img: /static/assets/img/landing/go.png
   desc: A Go library for Servertium
