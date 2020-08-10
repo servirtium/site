@@ -52,5 +52,12 @@
   i18n: servirtium-go
   gh_user: servirtium
   repo: servirtium-go
-  img: /static/assets/img/landing/go.png
+  img: /static/assets/img/landing/elixir.png
   desc: A Go library for Servertium
+
+- name: servirtium-elixir
+  i18n: servirtium-elixir
+  gh_user: servirtium
+  repo: servirtium-elixir
+  img: /static/assets/img/landing/elixir.png
+  desc: A Elixer library for Servertium
