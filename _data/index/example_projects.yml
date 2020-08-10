@@ -55,3 +55,10 @@
   img: /static/assets/img/landing/rust.png
   desc: A Rust example of Servertium using the WorldBank's Climate API
 
+- name: demo-elixir-climate-tck
+  i18n: demo-elixir-climate-tck
+  gh_user: servirtium
+  repo: servirtium-rust-climate-tck
+  img: /static/assets/img/landing/rust.png
+  desc: A Elixir example of Servertium using the WorldBank's Climate API
+
