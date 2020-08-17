@@ -7,7 +7,8 @@ categories: [meta]
 icon: fa-rss
 ---
 
-Day 2 of TECHNICAL AGILITY CONFERENCE (TAC) 2020:
+Day 2 (August 1st, 2020) of TECHNICAL AGILITY CONFERENCE (TAC) 2020:
 
-Keynote talk: "A spoonful of shift right, with that bucket of shift left?" [link to schedule](https://technicalagility.institute/tac2020/schedule.html) to be replaaced with link to video when available.
+Keynote talk: "A spoonful of shift right, with that bucket of shift left?" 
 
+[![](/assets/img/blog/bucket.png)](https://www.youtube.com/watch?v=v5FoESmaUAM)
