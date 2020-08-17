@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  Conference Keynote: A spoonful of shift right, with that bucket of shift left?
+title:  "Conference Keynote: A spoonful of shift right, with that bucket of shift left?"
 date:   2020-08-01
 keywords: "keynote-talk"
 categories: [meta]
