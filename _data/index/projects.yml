@@ -6,6 +6,13 @@
   img: /static/assets/img/landing/java.png
   desc: A Java library for Servertium
 
+- name: servirtium-javascript
+  i18n: servirtium-javascript
+  gh_user: servirtium
+  repo: servirtium-javascript
+  img: /static/assets/img/landing/javascript.png
+  desc: A JavaScript library for Servertium
+
 - name: servirtium-kotlin
   i18n: servirtium-kotlin
   gh_user: http4k
