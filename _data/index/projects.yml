@@ -4,67 +4,67 @@
   gh_user: servirtium
   repo: servirtium-java
   img: /static/assets/img/landing/java.png
-  desc: A Java library for Servertium
+  desc: A Java library for Servirtium
 
 - name: servirtium-javascript
   i18n: servirtium-javascript
   gh_user: servirtium
   repo: servirtium-javascript
   img: /static/assets/img/landing/javascript.png
-  desc: A JavaScript library for Servertium
+  desc: A JavaScript library for Servirtium
 
 - name: servirtium-kotlin
   i18n: servirtium-kotlin
   gh_user: http4k
   repo: servirtium-kotlin
   img: /static/assets/img/landing/kotlin.png
-  desc: A Kotlin library for Servertium
+  desc: A Kotlin library for Servirtium
 
 - name: servirtium-dotnet
   i18n: servirtium-dotnet
   gh_user: servirtium
   repo: servirtium-dotnet
   img: /static/assets/img/landing/dotnet.png
-  desc: A .NET Core library for Servertium
+  desc: A .NET Core library for Servirtium
 
 - name: servirtium-python
   i18n: servirtium-python
   gh_user: servirtium
   repo: servirtium-python
   img: /static/assets/img/landing/python.png
-  desc: A Python library for Servertium (work in progress)
+  desc: A Python library for Servirtium (work in progress)
 
 - name: servirtium-ruby
   i18n: servirtium-ruby
   gh_user: servirtium
   repo: servirtium-ruby
   img: /static/assets/img/landing/ruby.png
-  desc: A Ruby library for Servertium (to be started)
+  desc: A Ruby library for Servirtium (to be started)
 
 - name: servirtium-dart
   i18n: servirtium-dart
   gh_user: servirtium
   repo: servirtium-dart
   img: /static/assets/img/landing/dart.png
-  desc: A Dart library for Servertium
+  desc: A Dart library for Servirtium
 
 - name: servirtium-rust
   i18n: servirtium-rust
   gh_user: servirtium
   repo: servirtium-rust
   img: /static/assets/img/landing/rust.png
-  desc: A Rust library for Servertium
+  desc: A Rust library for Servirtium
 
 - name: servirtium-go
   i18n: servirtium-go
   gh_user: servirtium
   repo: servirtium-go
   img: /static/assets/img/landing/go.png
-  desc: A Go library for Servertium
+  desc: A Go library for Servirtium
 
 - name: servirtium-elixir
   i18n: servirtium-elixir
   gh_user: servirtium
   repo: servirtium-elixir
   img: /static/assets/img/landing/elixir.png
-  desc: A Elixer library for Servertium
+  desc: A Elixer library for Servirtium

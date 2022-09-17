@@ -4,61 +4,61 @@
   gh_user: servirtium
   repo: demo-python-climate-tck
   img: /static/assets/img/landing/python.png
-  desc: A Python example of Servertium using the WorldBank's Climate API
+  desc: A Python example of Servirtium using the WorldBank's Climate API
 
 - name: demo-java-climate-tck
   i18n: demo-java-climate-tck
   gh_user: servirtium
   repo: demo-java-climate-tck
   img: /static/assets/img/landing/java.png
-  desc: A Java example of Servertium using the WorldBank's Climate API
+  desc: A Java example of Servirtium using the WorldBank's Climate API
 
 - name: demo-ruby-climate-tck
   i18n: demo-ruby-climate-tck
   gh_user: servirtium
   repo: demo-ruby-climate-tck
   img: /static/assets/img/landing/ruby.png
-  desc: A Ruby example of Servertium using the WorldBank's Climate API (20% complete)
+  desc: A Ruby example of Servirtium using the WorldBank's Climate API (20% complete)
 
 - name: demo-kotlin-climate-tck
   i18n: demo-kotlin-climate-tck
   gh_user: http4k
   repo: demo-kotlin-climate-tck
   img: /static/assets/img/landing/kotlin.png
-  desc: A Kotlin example of Servertium using the WorldBank's Climate API
+  desc: A Kotlin example of Servirtium using the WorldBank's Climate API
 
 - name: demo-dotnet-climate-tck
   i18n: demo-dotnet-climate-tck
   gh_user: stephenhand
   repo: servirtium-demo-dotnet-climate-tck
   img: /static/assets/img/landing/dotnet.png
-  desc: A C# example of Servertium using the WorldBank's Climate API
+  desc: A C# example of Servirtium using the WorldBank's Climate API
 
 - name: demo-dart-climate-tck
   i18n: demo-dart-climate-tck
   gh_user: servirtium
   repo: servirtium-dart-climate-tck
   img: /static/assets/img/landing/dart.png
-  desc: A Dart example of Servertium using the WorldBank's Climate API
+  desc: A Dart example of Servirtium using the WorldBank's Climate API
 
 - name: demo-go-climate-tck
   i18n: demo-go-climate-tck
   gh_user: servirtium
   repo: servirtium-go-climate-tck
   img: /static/assets/img/landing/go.png
-  desc: A Go example of Servertium using the WorldBank's Climate API
+  desc: A Go example of Servirtium using the WorldBank's Climate API
 
 - name: demo-rust-climate-tck
   i18n: demo-rust-climate-tck
   gh_user: servirtium
   repo: servirtium-rust-climate-tck
   img: /static/assets/img/landing/rust.png
-  desc: A Rust example of Servertium using the WorldBank's Climate API
+  desc: A Rust example of Servirtium using the WorldBank's Climate API
 
 - name: demo-elixir-climate-tck
   i18n: demo-elixir-climate-tck
   gh_user: servirtium
   repo: servirtium-elixir-climate-tck
   img: /static/assets/img/landing/elixir.png
-  desc: An Elixir example of Servertium using the WorldBank's Climate API
+  desc: An Elixir example of Servirtium using the WorldBank's Climate API
 
