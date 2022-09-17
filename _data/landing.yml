@@ -20,7 +20,7 @@
 
 - id: demos
   i18n: nav.demos
-  name: Demos
+  name: Implementations/Demos
   tpl: demos.html
   css: project
 
