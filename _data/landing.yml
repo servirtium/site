@@ -24,18 +24,6 @@
   tpl: demos.html
   css: project
 
-- id: readiness
-  i18n: nav.readiness
-  name: Tech Readiness
-  tpl: readiness.html
-  css: team
-
-- id: implementations
-  i18n: nav.implementations
-  name: Implementations
-  tpl: implementations.html
-  css: project
-
 - id: tcks
   i18n: nav.tck
   name: TCKs
