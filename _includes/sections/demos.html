@@ -17,7 +17,7 @@
                 on top.</p>
             <p>Because every language drives the <em>same</em> engine, Servirtium
                 compatibility across languages is a <strong>build-time guarantee</strong> rather
-                than something each library re-derives and drifts on. One monorepo, twelve
+                than something each library re-derives and drifts on. One monorepo, seventeen
                 bindings, one build.</p>
         </div>
     </div>
@@ -36,7 +36,7 @@
             <td><a href="https://github.com/servirtium/servirtium-vcr/tree/main/go">go/</a></td></tr>
         <tr><th scope="row">Python</th><td>ctypes</td>
             <td><a href="https://github.com/servirtium/servirtium-vcr/tree/main/python">python/</a></td></tr>
-        <tr><th scope="row">Java</th><td>FFM / Panama (JDK 25)</td>
+        <tr><th scope="row">Java</th><td>FFM / Panama (JDK 22+)</td>
             <td><a href="https://github.com/servirtium/servirtium-vcr/tree/main/java">java/</a></td></tr>
         <tr><th scope="row">.NET</th><td>P/Invoke</td>
             <td><a href="https://github.com/servirtium/servirtium-vcr/tree/main/dotnet">dotnet/</a></td></tr>
@@ -56,9 +56,19 @@
             <td><a href="https://github.com/servirtium/servirtium-vcr/tree/main/elixir">elixir/</a></td></tr>
         <tr><th scope="row">Pharo (Smalltalk)</th><td>UnifiedFFI</td>
             <td><a href="https://github.com/servirtium/servirtium-vcr/tree/main/pharo">pharo/</a></td></tr>
+        <tr><th scope="row">Nim</th><td>importc (linked)</td>
+            <td><a href="https://github.com/servirtium/servirtium-vcr/tree/main/nim">nim/</a></td></tr>
+        <tr><th scope="row">Zig</th><td>extern C (linked)</td>
+            <td><a href="https://github.com/servirtium/servirtium-vcr/tree/main/zig">zig/</a></td></tr>
+        <tr><th scope="row">Lua</th><td>C extension (Lua 5.4)</td>
+            <td><a href="https://github.com/servirtium/servirtium-vcr/tree/main/lua">lua/</a></td></tr>
+        <tr><th scope="row">Erlang</th><td>C NIF (reuses Elixir's)</td>
+            <td><a href="https://github.com/servirtium/servirtium-vcr/tree/main/erlang">erlang/</a></td></tr>
+        <tr><th scope="row">Gleam</th><td>C NIF over the BEAM</td>
+            <td><a href="https://github.com/servirtium/servirtium-vcr/tree/main/gleam">gleam/</a></td></tr>
         </tbody>
     </table>
-    <p class="text-center"><small>The twelve bindings build and test through one
+    <p class="text-center"><small>The seventeen bindings build and test through one
         <a href="https://github.com/aether-lang-org/aeb">aeb</a> run against the shared
         <code>libservirtium_vcr.so</code>. See the
         <a href="https://github.com/servirtium/servirtium-vcr#bindings">monorepo README</a>
