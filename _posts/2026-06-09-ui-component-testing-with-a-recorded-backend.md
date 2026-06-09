@@ -36,9 +36,9 @@ There's a small demo in the monorepo —
 - A **Vue** control: a form that does an HTTP **POST** and renders the created
   record. One source file, `PostForm.vue`.
 - That *same* control is **presented in Storybook** (the tool that made
-  "detaching a UI from the stack" routine) **and** driven, outside Storybook, in
-  a **Selenium** harness in real headless Chrome. Both import the one component —
-  no parallel widget, no doubled test.
+  "detaching a UI from the stack" routine — [browse it live here]({{ site.baseurl }}/storybook/))
+  **and** driven, outside Storybook, in a **Selenium** harness in real headless
+  Chrome. Both import the one component — no parallel widget, no doubled test.
 - The **mock backend is Servirtium**. The VCR serves the built page from its own
   static-content mount, so the form's `POST` is *same-origin* (no CORS, no
   preflight) and lands straight on the VCR — which either **records** it
