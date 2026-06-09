@@ -4,15 +4,8 @@
         <div class="col-lg-8 col-lg-offset-2 text-left m-t-lg m-b-lg wow zoomIn">
             <h1><a id="user-content-example-of-the-servirtium-markdown-format" class="anchor" aria-hidden="true"
                    href="#example-of-the-servirtium-markdown-format"><span style="font-size: 65%">🔗</span></a>Markdown format - Examples</h1>
-            <p>Here's a screen-shot of some raw markdown source:</p>
-            <p><a target="_blank" rel="noopener noreferrer"
-                  href="https://user-images.githubusercontent.com/82182/67832718-7092e380-fada-11e9-94a8-58dcc82810cb.png"><img
-                    src="https://user-images.githubusercontent.com/82182/67832718-7092e380-fada-11e9-94a8-58dcc82810cb.png"
-                    alt="2019-10-30_0559" style="max-width:100%;"></a></p>
-            <p><em>&darr; The same source as an <strong>inline SVG</strong> rather than a
-                screenshot &mdash; crisp at any zoom, the text is real (selectable, searchable,
-                accessible) and there's no external image to depend on. A candidate replacement
-                for the PNG above &mdash; does it read well?</em></p>
+            <p>Here's some raw Servirtium markdown source &mdash; shown as inline SVG, so the
+                text is real (selectable, searchable) and stays crisp at any zoom:</p>
             <p>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 680" width="720" style="max-width:100%;height:auto;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" role="img" aria-label="Servirtium markdown tape source (example1.md)">
 <rect x="0.5" y="0.5" width="719" height="679" rx="8" fill="#ffffff" stroke="#d0d7de"/>
@@ -84,19 +77,40 @@
 <text xml:space="preserve" x="62" y="662" font-size="13" fill="#6e7781">```</text>
 </svg>
             </p>
-            <p>(non-screenshot actual source: <a
-                    href="https://raw.githubusercontent.com/servirtium/README/master/example1.md" rel="nofollow">https://raw.githubusercontent.com/servirtium/README/master/example1.md</a>)
+            <p>(actual source file: <a
+                    href="https://raw.githubusercontent.com/servirtium/README/master/example1.md" rel="nofollow">github.com/servirtium/README/example1.md</a>)
             </p>
             <p>Here's what GitHub (for one) renders that like:</p>
-            <p><a target="_blank" rel="noopener noreferrer"
-                  href="https://user-images.githubusercontent.com/82182/67832562-f2ced800-fad9-11e9-9bbf-8a366ad7c938.png"><img
-                    src="https://user-images.githubusercontent.com/82182/67832562-f2ced800-fad9-11e9-9bbf-8a366ad7c938.png"
-                    alt="2019-10-30_0555" style="max-width:100%;"></a></p>
+            <p>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 684" width="720" style="max-width:100%;height:auto" role="img" aria-label="Servirtium tape as GitHub renders it">
+<rect x="0.5" y="0.5" width="719" height="683" rx="8" fill="#ffffff" stroke="#d0d7de"/>
+<text x="28" y="50" font-size="24" font-weight="600" fill="#1f2328" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif">Interaction 0: GET /path/to/resource</text>
+<line x1="28" y1="60" x2="692" y2="60" stroke="#d8dee4"/>
+<text x="28" y="122" font-size="20" font-weight="600" fill="#1f2328" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif">Request headers recorded for playback:</text>
+<rect x="28" y="136" width="664" height="68" rx="6" fill="#f6f8fa" stroke="#eaeef2"/>
+<text xml:space="preserve" x="42" y="163" font-size="13.5" fill="#1f2328" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace">Header1: something</text>
+<text xml:space="preserve" x="42" y="183" font-size="13.5" fill="#1f2328" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace">Header2: something else</text>
+<text x="28" y="260" font-size="20" font-weight="600" fill="#1f2328" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif">Request body recorded for playback (application/xml):</text>
+<rect x="28" y="274" width="664" height="88" rx="6" fill="#f6f8fa" stroke="#eaeef2"/>
+<text xml:space="preserve" x="42" y="301" font-size="13.5" fill="#1f2328" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace">&lt;hello&gt;</text>
+<text xml:space="preserve" x="42" y="321" font-size="13.5" fill="#1f2328" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace">  &lt;how-are-you/&gt;</text>
+<text xml:space="preserve" x="42" y="341" font-size="13.5" fill="#1f2328" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace">&lt;/hello&gt;</text>
+<text x="28" y="418" font-size="20" font-weight="600" fill="#1f2328" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif">Response headers recorded for playback:</text>
+<rect x="28" y="432" width="664" height="108" rx="6" fill="#f6f8fa" stroke="#eaeef2"/>
+<text xml:space="preserve" x="42" y="459" font-size="13.5" fill="#1f2328" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace">Content-Type: text/plain</text>
+<text xml:space="preserve" x="42" y="479" font-size="13.5" fill="#1f2328" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace">Connection: keep-alive</text>
+<text xml:space="preserve" x="42" y="499" font-size="13.5" fill="#1f2328" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace">Set-Cookie: CookieName=CookieValue</text>
+<text xml:space="preserve" x="42" y="519" font-size="13.5" fill="#1f2328" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace">Header-X: abc-123</text>
+<text x="28" y="596" font-size="20" font-weight="600" fill="#1f2328" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif">Response body recorded for playback (200: text/plain):</text>
+<rect x="28" y="610" width="664" height="48" rx="6" fill="#f6f8fa" stroke="#eaeef2"/>
+<text xml:space="preserve" x="42" y="637" font-size="13.5" fill="#1f2328" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace">Mary had a little lamb</text>
+</svg>
+            </p>
             <p>That's the whole point of this format that's human-inspectable in raw form and that your code-portal
                 renders in a pretty way too.
                 If your code portal is GitHub, then 'pretty' is true.</p>
-            <p>(non-screenshot actual rendered file: <a
-                    href="https://github.com/servirtium/README/blob/master/example1.md">https://github.com/servirtium/README/blob/master/example1.md</a>)
+            <p>(rendered on GitHub: <a
+                    href="https://github.com/servirtium/README/blob/master/example1.md">github.com/servirtium/README/example1.md</a>)
             </p>
             <p>... and you'd be storing that VCS as you would your automated tests.</p>
             <h2><a id="user-content-markdown-syntax-explained" class="anchor" aria-hidden="true"
