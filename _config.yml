@@ -10,18 +10,10 @@ url: https:/servirtium.dev/  # url should be 'http://<github_username>.github.io
 # url: http://127.0.0.1:4000
 img_path: /site/static/assets/img/blog  # url should be '/homepage/static/assets/img/blog' as before
 
-# author -- index page "about servirtium" section
-author:  # change following line to your information.
-  name: GitHub  # Be used at blog posts' author.
-  first_name: Hub  # Be used at index page about servirtium section.
-  last_name: Git  # Be used at index page about servirtium section.
-  avatar: /static/assets/img/landing/avatar.jpg  # upload your avatar at directory and edit it.
-  github_username: servirtium  # Leave blank if you don't have now
-  linkedin_id: # Leave blank if you don't have now
-  facebook_username:  # Leave blank if you don't have now
-  twitter_username:  # Leave blank if you don't have now
-  email:  # Leave blank if you don't have now
-  desc:
+# author -- used for the meta author tag and blog post bylines
+author:
+  name: Servirtium
+  github_username: servirtium
 
 # comment
 disqus:  # if you wanna comment feature, go to https://disqus.com/ to get your configuration; if not, comment following two lines.
@@ -39,9 +31,6 @@ go:
 ## growingIO
 gio:  # if you wanna this feature, go to https://www.growingio.com/ to get your configuration; if not, comment following line.
   # id:
-
-## donation
-donation: off  # type 'on'/'off' to choice display donation button at post page or not
 
 ## carousels
 index_carousel: on  # index page carousel switch

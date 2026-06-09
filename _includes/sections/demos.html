@@ -2,100 +2,131 @@
     <div class="row m-b-lg">
         <div class="col-lg-12 text-center">
             <div class="navy-line"></div>
-            <h1><span data-i18n="projects.my_projects">Servirtium In Different Languages</span></h1>
+            <h1>Servirtium VCR &mdash; one engine, many languages</h1>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-10 col-lg-offset-1">
+            <p><a href="https://github.com/servirtium/servirtium-vcr">servirtium-vcr</a>
+                is the current direction for Servirtium. Instead of a separate re-implementation
+                per language, there is a single record/replay <strong>engine</strong> &mdash;
+                the Servirtium markdown parser/emitter, the HTTP server, request matching,
+                redaction, whole-tape normalization and drift detection &mdash; built once as a
+                native shared library, with a <strong>thin FFI binding per language</strong>
+                on top.</p>
+            <p>Because every language drives the <em>same</em> engine, Servirtium
+                compatibility across languages is a <strong>build-time guarantee</strong> rather
+                than something each library re-derives and drifts on. One monorepo, twelve
+                bindings, one build.</p>
         </div>
     </div>
     <br>
+
     <table class="table">
         <thead>
         <tr>
             <th scope="col">Language</th>
-            <th scope="col">Implementation</th>
-            <th scope="col">Self-contained demo repo using "Climate API" library concept</th>
-            <th scope="col">Authors</th>
-            <th scope="col">Readiness for use</th>
+            <th scope="col">Binding mechanism</th>
+            <th scope="col">In the monorepo</th>
         </tr>
         </thead>
         <tbody>
+        <tr><th scope="row">Go</th><td>cgo</td>
+            <td><a href="https://github.com/servirtium/servirtium-vcr/tree/main/go">go/</a></td></tr>
+        <tr><th scope="row">Python</th><td>ctypes</td>
+            <td><a href="https://github.com/servirtium/servirtium-vcr/tree/main/python">python/</a></td></tr>
+        <tr><th scope="row">Java</th><td>FFM / Panama (JDK 25)</td>
+            <td><a href="https://github.com/servirtium/servirtium-vcr/tree/main/java">java/</a></td></tr>
+        <tr><th scope="row">.NET</th><td>P/Invoke</td>
+            <td><a href="https://github.com/servirtium/servirtium-vcr/tree/main/dotnet">dotnet/</a></td></tr>
+        <tr><th scope="row">Rust</th><td>libloading</td>
+            <td><a href="https://github.com/servirtium/servirtium-vcr/tree/main/rust">rust/</a></td></tr>
+        <tr><th scope="row">Ruby</th><td>Fiddle</td>
+            <td><a href="https://github.com/servirtium/servirtium-vcr/tree/main/ruby">ruby/</a></td></tr>
+        <tr><th scope="row">JavaScript &amp; TypeScript</th><td>koffi (Node)</td>
+            <td><a href="https://github.com/servirtium/servirtium-vcr/tree/main/javascript">javascript/</a></td></tr>
+        <tr><th scope="row">Dart (and Flutter)</th><td>dart:ffi</td>
+            <td><a href="https://github.com/servirtium/servirtium-vcr/tree/main/dart">dart/</a></td></tr>
+        <tr><th scope="row">PHP</th><td>ext-ffi</td>
+            <td><a href="https://github.com/servirtium/servirtium-vcr/tree/main/php">php/</a></td></tr>
+        <tr><th scope="row">Haskell</th><td>foreign import ccall</td>
+            <td><a href="https://github.com/servirtium/servirtium-vcr/tree/main/haskell">haskell/</a></td></tr>
+        <tr><th scope="row">Elixir</th><td>C NIF</td>
+            <td><a href="https://github.com/servirtium/servirtium-vcr/tree/main/elixir">elixir/</a></td></tr>
+        <tr><th scope="row">Pharo (Smalltalk)</th><td>UnifiedFFI</td>
+            <td><a href="https://github.com/servirtium/servirtium-vcr/tree/main/pharo">pharo/</a></td></tr>
+        </tbody>
+    </table>
+    <p class="text-center"><small>The twelve bindings build and test through one
+        <a href="https://github.com/aether-lang-org/aeb">aeb</a> run against the shared
+        <code>libservirtium_vcr.so</code>. See the
+        <a href="https://github.com/servirtium/servirtium-vcr#bindings">monorepo README</a>
+        for per-language quick-starts and docs.</small></p>
+
+    <br>
+    <hr>
+
+    <div class="row m-b-lg">
+        <div class="col-lg-12 text-center">
+            <h2>Other &amp; earlier implementations</h2>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-10 col-lg-offset-1">
+            <p><strong><a href="https://github.com/http4k/http4k/tree/master/http4k-testing/servirtium">http4k-testing/servirtium</a></strong>
+                (David Denton) is an independent, mature Servirtium implementation for Kotlin
+                and Java, shipped as part of the <a href="https://www.http4k.org/">http4k</a>
+                toolkit &mdash; demo:
+                <a href="https://github.com/http4k/servirtium-demo-kotlin-climate-tck">servirtium-demo-kotlin-climate-tck</a>
+                (Kotlin and Java/JUnit5), and
+                <a href="https://github.com/servirtium/jbehave-servirtium-climate-tck-demo">jbehave-servirtium-climate-tck-demo</a>
+                (JBehave).</p>
+            <p>Servirtium also began life as a set of standalone per-language libraries, most
+                of which are now folded into <strong>servirtium-vcr</strong> above. They remain
+                in the <a href="https://github.com/servirtium">servirtium GitHub org</a>, with
+                thanks to the people who built them:</p>
+        </div>
+    </div>
+    <table class="table">
+        <thead>
         <tr>
-            <th scope="row">JavaScript &amp; TypeScript</th>
+            <th scope="col">Language</th>
+            <th scope="col">Earlier standalone library</th>
+            <th scope="col">Author(s)</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr><th scope="row">JavaScript &amp; TypeScript</th>
             <td><a href="https://github.com/servirtium/servirtium-javascript">servirtium-javascript</a></td>
-            <td><a href="https://github.com/servirtium/demo-javascript-climate-tck">demo-javascript-climate-tck</a> (Jest)</td>
-            <td>Duong Pham</td>
-            <td>95%</td>
-        </tr>
-        <tr>
-            <th scope="row">.NET</th>
+            <td>Duong Pham</td></tr>
+        <tr><th scope="row">.NET</th>
             <td><a href="https://github.com/servirtium/servirtium-dotnet">servirtium-dotnet</a></td>
-            <td><a href="https://github.com/servirtium/demo-dotnet-climate-tck">demo-dotnet-climate-tck</a> (Xunit)</td>
-            <td>Stephen Hand</td>
-            <td>95%</td>
-        </tr>
-        <tr>
-            <th scope="row">Go</th>
+            <td>Stephen Hand</td></tr>
+        <tr><th scope="row">Go</th>
             <td><a href="https://github.com/servirtium/servirtium-go">servirtium-go</a></td>
-            <td><a href="https://github.com/servirtium/demo-go-climate-tck">demo-go-climate-tck</a> (testing)</td>
-            <td>Duong Pham</td>
-            <td>95%</td>
-        </tr>
-        <tr>
-            <th scope="row">Java, Kotlin etc</th>
-            <td><a href="https://github.com/http4k/http4k/tree/master/http4k-testing/servirtium">http4k-testing/servirtium</a></td>
-            <td><a href="https://github.com/http4k/servirtium-demo-kotlin-climate-tck">http4k/servirtium-demo-kotlin-climate-tck</a>
-                - Kotlin <strong>and also</strong> Java (JUnit5). <a href="https://github.com/servirtium/jbehave-servirtium-climate-tck-demo">jbehave-servirtium-climate-tck-demo</a> (JBehave)</td>
-            <td>David Denton</td>
-            <td>95%</td>
-        </tr>
-        <tr>
-            <th scope="row">Python</th>
+            <td>Duong Pham</td></tr>
+        <tr><th scope="row">Python</th>
             <td><a href="https://github.com/servirtium/servirtium-python">servirtium-python</a></td>
-            <td><a href="https://github.com/servirtium/demo-python-climate-tck">demo-python-climate-tck</a> (PyTest)</td>
-             <td>Steve Freeman, Yogesh Naik &amp; Ross Fung</td>
-            <td>70%</td>
-        </tr>
-        <tr>
-            <th scope="row">Ruby</th>
+            <td>Steve Freeman, Yogesh Naik &amp; Ross Fung</td></tr>
+        <tr><th scope="row">Ruby</th>
             <td><a href="https://github.com/servirtium/servirtium-ruby">servirtium-ruby</a></td>
-            <td><a href="https://github.com/servirtium/demo-ruby-climate-tck">demo-ruby-climate-tck</a> (RSpec)</td>
-             <td>Rob Park</td>
-            <td>90%</td>
-        </tr>
-        <tr>
-            <th scope="row">Dart (and Flutter)</th>
+            <td>Rob Park</td></tr>
+        <tr><th scope="row">Dart (and Flutter)</th>
             <td><a href="https://github.com/servirtium/servirtium-dart">servirtium-dart</a></td>
-            <td><a href="https://github.com/servirtium/demo-dart-climate-tck">demo-dart-climate-tck</a> (Test)
-                and for iOS <a href="https://github.com/servirtium/demo-flutter-climate-tck">demo-flutter-climate-tck</a> (flutter_driver)</td>
-            <td>Khaleel Shaheen & Hemanth Raj V</td>
-            <td>90%</td>
-        </tr>
-        <tr>
-            <th scope="row">Rust</th>
+            <td>Khaleel Shaheen &amp; Hemanth Raj V</td></tr>
+        <tr><th scope="row">Rust</th>
             <td><a href="https://github.com/servirtium/servirtium-rust">servirtium-rust</a></td>
-            <td><a href="https://github.com/servirtium/demo-rust-climate-tck">demo-rust-climate-tck</a></td>
-            <td>Denis Karpovskiy</td>
-            <td>90%</td>
-        </tr>
-        <tr>
-            <th scope="row">Elixir</th>
+            <td>Denis Karpovskiy</td></tr>
+        <tr><th scope="row">Elixir</th>
             <td><a href="https://github.com/servirtium/servirtium-elixir">servirtium-elixir</a></td>
-            <td><a href="https://github.com/servirtium/demo-elixir-climate-tck">demo-elixir-climate-tck</a> (ExUnit)</td>
-            <td>Josh Price</td>
-            <td>50%</td>
-        </tr>
-        <tr>
-            <th scope="row">Legacy Java</th>
+            <td>Josh Price</td></tr>
+        <tr><th scope="row">Haskell</th>
+            <td><a href="https://github.com/servirtium/servirtium-haskell">servirtium-haskell</a></td>
+            <td>Charlie Austin</td></tr>
+        <tr><th scope="row">Java (original)</th>
             <td><a href="https://github.com/servirtium/servirtium-java">servirtium-java</a></td>
-            <td><a href="https://github.com/servirtium/demo-java-climate-tck">demo-java-climate-tck</a> (JUnit4)</td>
-            <td>Paul Hammant</td>
-            <td>95%</td>
-        </tr>
-        <tr>
-            <th scope="row">Haskell</th>
-            <td><a href="https://github.com/servirtium/servirtium-haskell"></a></td>
-            <td><a href="https://github.com/servirtium/servirtium-haskell">early days ...</a> (?)</td>
-            <td>Charlie Austin</td>
-            <td>5%</td>
-        </tr>
+            <td>Paul Hammant</td></tr>
         </tbody>
     </table>
 </div>
