@@ -140,26 +140,55 @@
                     (Servirtese?) before that build completes. That check is <code>git diff</code> and if there are
                     any, then the job deliberately fails and a developer would be asked to investigate.
                 </p>
-                <div style="margin-left:10%; margin-right:10%"><pre><code># Your regular compile and invocation
-# of pertinent service tests here:
-
-your_compile.sh # job could fail here
-your_test_suite_invocation.sh  # job could fail here, too
-
-# passed, so far, but one more job failure opportunity based on
-# differences in the recorded Servirtium Markdown (versus that committed)
-
-theDiff=$(git diff --unified=0 path/to/module/src/test/mocks/<wbr>)
-if [[ -z "${theDiff}" ]]
-then
-      echo " - No differences versus recorded interactions committed to Git, so that's good"
-
-else
-      echo " - There SHOULD BE no differences versus last TCK
-      echo "   recording, but there were - see build log :-(  "
-      echo "**** DIFF ****:${theDiff}."
-      exit 1
-fi<br></code></pre></div>
+                <div class="text-center">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 462" width="820" style="max-width:100%;height:auto;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" role="img" aria-label="CI script: git diff fails the build when Servirtium recordings drift">
+<rect x="0.5" y="0.5" width="819" height="461" rx="8" fill="#ffffff" stroke="#d0d7de"/>
+<path d="M0 8 a8 8 0 0 1 8 -8 H812 a8 8 0 0 1 8 8 V36 H0 Z" fill="#f6f8fa"/>
+<line x1="0" y1="36" x2="820" y2="36" stroke="#d0d7de"/>
+<circle cx="18" cy="18" r="6" fill="#ff5f56"/>
+<circle cx="38" cy="18" r="6" fill="#ffbd2e"/>
+<circle cx="58" cy="18" r="6" fill="#27c93f"/>
+<text x="410.0" y="23" text-anchor="middle" font-size="12" fill="#57606a">tck-diff-check.sh</text>
+<rect x="0" y="36" width="48" height="426" fill="#f6f8fa"/>
+<line x1="48" y1="36" x2="48" y2="462" stroke="#eaeef2"/>
+<text x="38" y="62" text-anchor="end" font-size="11" fill="#bcc3cc">1</text>
+<text xml:space="preserve" x="62" y="62" font-size="13"><tspan fill="#6a737d"># Your regular compile and invocation</tspan></text>
+<text x="38" y="82" text-anchor="end" font-size="11" fill="#bcc3cc">2</text>
+<text xml:space="preserve" x="62" y="82" font-size="13"><tspan fill="#6a737d"># of pertinent service tests here:</tspan></text>
+<text x="38" y="102" text-anchor="end" font-size="11" fill="#bcc3cc">3</text>
+<text x="38" y="122" text-anchor="end" font-size="11" fill="#bcc3cc">4</text>
+<text xml:space="preserve" x="62" y="122" font-size="13"><tspan fill="#24292f">your_compile.sh&#160;</tspan><tspan fill="#6a737d"># job could fail here</tspan></text>
+<text x="38" y="142" text-anchor="end" font-size="11" fill="#bcc3cc">5</text>
+<text xml:space="preserve" x="62" y="142" font-size="13"><tspan fill="#24292f">your_test_suite_invocation.sh&#160;&#160;</tspan><tspan fill="#6a737d"># job could fail here, too</tspan></text>
+<text x="38" y="162" text-anchor="end" font-size="11" fill="#bcc3cc">6</text>
+<text x="38" y="182" text-anchor="end" font-size="11" fill="#bcc3cc">7</text>
+<text xml:space="preserve" x="62" y="182" font-size="13"><tspan fill="#6a737d"># passed, so far, but one more job failure opportunity based on</tspan></text>
+<text x="38" y="202" text-anchor="end" font-size="11" fill="#bcc3cc">8</text>
+<text xml:space="preserve" x="62" y="202" font-size="13"><tspan fill="#6a737d"># differences in the recorded Servirtium Markdown (versus that committed)</tspan></text>
+<text x="38" y="222" text-anchor="end" font-size="11" fill="#bcc3cc">9</text>
+<text x="38" y="242" text-anchor="end" font-size="11" fill="#bcc3cc">10</text>
+<text xml:space="preserve" x="62" y="242" font-size="13"><tspan fill="#24292f">theDiff=$(git diff --unified=0 path/to/module/src/test/mocks/)</tspan></text>
+<text x="38" y="262" text-anchor="end" font-size="11" fill="#bcc3cc">11</text>
+<text xml:space="preserve" x="62" y="262" font-size="13"><tspan fill="#d73a49">if</tspan><tspan fill="#24292f"> [[ -z </tspan><tspan fill="#032f62">&quot;${theDiff}&quot;</tspan><tspan fill="#24292f"> ]]</tspan></text>
+<text x="38" y="282" text-anchor="end" font-size="11" fill="#bcc3cc">12</text>
+<text xml:space="preserve" x="62" y="282" font-size="13"><tspan fill="#d73a49">then</tspan></text>
+<text x="38" y="302" text-anchor="end" font-size="11" fill="#bcc3cc">13</text>
+<text xml:space="preserve" x="62" y="302" font-size="13"><tspan fill="#24292f">&#160;&#160;&#160;&#160;&#160;&#160;</tspan><tspan fill="#6f42c1">echo</tspan><tspan fill="#24292f"> </tspan><tspan fill="#032f62">&quot; - No differences versus recorded interactions committed to Git, so that&#x27;s good&quot;</tspan></text>
+<text x="38" y="322" text-anchor="end" font-size="11" fill="#bcc3cc">14</text>
+<text x="38" y="342" text-anchor="end" font-size="11" fill="#bcc3cc">15</text>
+<text xml:space="preserve" x="62" y="342" font-size="13"><tspan fill="#d73a49">else</tspan></text>
+<text x="38" y="362" text-anchor="end" font-size="11" fill="#bcc3cc">16</text>
+<text xml:space="preserve" x="62" y="362" font-size="13"><tspan fill="#24292f">&#160;&#160;&#160;&#160;&#160;&#160;</tspan><tspan fill="#6f42c1">echo</tspan><tspan fill="#24292f"> </tspan><tspan fill="#032f62">&quot; - There SHOULD BE no differences versus last TCK</tspan></text>
+<text x="38" y="382" text-anchor="end" font-size="11" fill="#bcc3cc">17</text>
+<text xml:space="preserve" x="62" y="382" font-size="13"><tspan fill="#24292f">&#160;&#160;&#160;&#160;&#160;&#160;</tspan><tspan fill="#6f42c1">echo</tspan><tspan fill="#24292f"> </tspan><tspan fill="#032f62">&quot;&#160;&#160;&#160;recording, but there were - see build log :-(&#160;&#160;&quot;</tspan></text>
+<text x="38" y="402" text-anchor="end" font-size="11" fill="#bcc3cc">18</text>
+<text xml:space="preserve" x="62" y="402" font-size="13"><tspan fill="#24292f">&#160;&#160;&#160;&#160;&#160;&#160;</tspan><tspan fill="#6f42c1">echo</tspan><tspan fill="#24292f"> </tspan><tspan fill="#032f62">&quot;**** DIFF ****:${theDiff}.&quot;</tspan></text>
+<text x="38" y="422" text-anchor="end" font-size="11" fill="#bcc3cc">19</text>
+<text xml:space="preserve" x="62" y="422" font-size="13"><tspan fill="#24292f">&#160;&#160;&#160;&#160;&#160;&#160;</tspan><tspan fill="#6f42c1">exit</tspan><tspan fill="#24292f"> 1</tspan></text>
+<text x="38" y="442" text-anchor="end" font-size="11" fill="#bcc3cc">20</text>
+<text xml:space="preserve" x="62" y="442" font-size="13"><tspan fill="#d73a49">fi</tspan></text>
+</svg>
+                </div>
                 <p>
                     Oh and yes, a Markdown representation of one or more HTTP interactions is the easiest for seeing
                     differences in changed recording. That is because XML and JSON payloads can be reformatted to
