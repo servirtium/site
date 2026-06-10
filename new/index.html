@@ -1,8 +1,33 @@
 ---
 permalink: /new
 ---
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-        <meta http-equiv="refresh" content="0; url=https://github.com/servirtium/README/blob/master/starting-a-new-implementation.md" />
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Adding a Servirtium language</title>
+    <style>
+        body { font-family: system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif;
+               max-width: 40rem; margin: 4rem auto; padding: 0 1.2rem; line-height: 1.6; color: #1f2328; }
+        a { color: #2b7fff; }
+        code { background: #f6f8fa; padding: 0.1rem 0.35rem; border-radius: 4px; }
+        .cta { display: inline-block; margin-top: 1rem; padding: 0.5rem 1rem;
+               background: #2b7fff; color: #fff; border-radius: 6px; text-decoration: none; }
+    </style>
 </head>
+<body>
+    <h1>Adding a Servirtium language</h1>
+    <p>Servirtium is now <strong>one native engine + thin per-language bindings</strong>,
+       all in a single monorepo. You don't hand-build a recorder/replayer/server from
+       scratch anymore — you write a thin FFI binding over the shared engine, and the
+       existing bindings are your template.</p>
+    <p><strong>To add a language:</strong> open
+       <a href="https://github.com/servirtium/servirtium-vcr">servirtium/servirtium-vcr</a>
+       in a coding agent and ask it (e.g. <em>"make a Perl binding"</em>). It has the
+       engine's C ABI and a bindings table covering every FFI mechanism (ctypes, cgo,
+       FFM, P/Invoke, koffi, C NIF, …) — pick the nearest existing binding and copy its
+       shape. See <code>LLM.md</code> in that repo for the orientation map.</p>
+    <p><a class="cta" href="https://github.com/servirtium/servirtium-vcr">Go to servirtium-vcr →</a></p>
+</body>
 </html>
