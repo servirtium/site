@@ -27,27 +27,66 @@ There are two seams.
   conversation in Markdown, captured once against a real (or stub) backend and
   replayed forever, offline and deterministic.
 
-## A worked example
+## Two Vue controls, one recorded backend
 
-There's a small demo in the monorepo —
-[`integration/vue-storybook`](https://github.com/servirtium/servirtium-vcr/tree/main/integration/vue-storybook)
-— that puts the two ideas together:
+The demo lives in the monorepo at
+[`integration/vue-storybook`](https://github.com/servirtium/servirtium-vcr/tree/main/integration/vue-storybook).
+There are two small Vue controls, and for each one the *same* source component is:
 
-- A **Vue** control: a form that does an HTTP **POST** and renders the created
-  record. One source file, `PostForm.vue`.
-- That *same* control is **presented in Storybook** (the tool that made
-  "detaching a UI from the stack" routine — [browse it live here]({{ site.baseurl }}/storybook/))
-  **and** driven, outside Storybook, in a **Selenium** harness in real headless
-  Chrome. Both import the one component — no parallel widget, no doubled test.
-- The **mock backend is Servirtium**. The VCR serves the built page from its own
-  static-content mount, so the form's `POST` is *same-origin* (no CORS, no
-  preflight) and lands straight on the VCR — which either **records** it
-  (forwarding once to a throwaway upstream) or **replays** it from a committed
-  Markdown tape. Record vs playback is just a choice of which script you run.
+- **presented in Storybook** — the tool that made "detach the control from the
+  stack" routine ([browse the stories]({{ site.baseurl }}/storybook/)); and
+- **driven outside Storybook, in a Selenium harness**, in real headless Chrome.
 
-So the control runs disconnected from any backend, the test is offline and
+One component, two consumers — no parallel widget, no doubled test. And in both
+cases the mock backend is a **Servirtium VCR**: it serves the built page from
+its own static-content mount, so the control's request is *same-origin* (no
+CORS, no preflight) and lands straight on the VCR — which either **records** it
+(forwarding once to a throwaway upstream) or **replays** it from a committed
+Markdown tape. Record vs playback is just which script you run.
+
+### A plain POST: the message form
+
+`PostForm.vue` is the minimal case — a "Leave a message" field and a **Post**
+button. Submitting fires a `POST /api/messages` and the control renders the
+server's reply: *Created #1: "hello from servirtium" (created)*. One request,
+one response, round-tripped through a tape.
+
+- **Play with it live:**
+  [Servirtium / PostForm](https://servirtium.dev/storybook/?path=/story/servirtium-postform--default)
+  — a Storybook decorator stubs `fetch` with the same response shape the tape
+  carries, so the control is live in Storybook too.
+- **The recording:**
+  [`tapes/post.md`](https://github.com/servirtium/servirtium-vcr/blob/main/integration/vue-storybook/tapes/post.md)
+  — a single interaction; the POST body and the JSON reply sit right there in
+  the Markdown, diffable in a pull request.
+
+This is the "is a POST even mockable at the HTTP seam?" proof, and the answer is
+yes: the control runs disconnected from any backend, the test is offline and
 deterministic, and it's fast — exactly the 2017 brief, with the down-stack cut
 at the network rather than the model.
+
+### "Good, Cheap, Fast — pick two"
+
+The second control makes a sharper point: the **backend is the source of
+truth**, and the UI renders only what the server says — never an optimistic
+local flip. It's the old engineering joke as three checkboxes over a Venn
+diagram. Every toggle is a POST; pick two and the server names the pair (Slow /
+Expensive / Low Quality); reach for a **third** and the server **evicts the
+oldest** — you watch a ticked box pop back off. The control can't hold all three
+because the backend won't let it.
+
+- **Play with it live:**
+  [Servirtium / GoodCheapFast](https://servirtium.dev/storybook/?path=/story/servirtium-goodcheapfast--default)
+  — a stubbed backend enforces the rule, so you can click the joke for yourself.
+- **The recording:**
+  [`tapes/triple-pick-two.md`](https://github.com/servirtium/servirtium-vcr/blob/main/integration/vue-storybook/tapes/triple-pick-two.md)
+  — three interactions, the last one dropping `good` so `cheap`+`fast` win.
+
+Because the eviction is the *server's* decision, recorded and replayed, the
+control's **unchecking** behaviour is tested for free: the same Markdown tape
+that drives the green ticks also drives a box back to empty. A model-seam test
+that shoved state straight into the component would never have exercised that
+round-trip.
 
 ## Why the extra inch is worth it
 
