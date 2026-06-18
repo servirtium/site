@@ -6,11 +6,11 @@
   tpl: about.html
   css:
 
-- id: what-is-servirtium
-  i18n: nav.what_is_servirtium
-  name: What It Is
-  tpl: what-is.html
-  css:
+- id: demos
+  i18n: nav.demos
+  name: Servirtium VCR
+  tpl: demos.html
+  css: project
 
 - id: markdown-format
   i18n: nav.markdown-format
@@ -18,11 +18,11 @@
   tpl: markdown-format.html
   css:
 
-- id: demos
-  i18n: nav.demos
-  name: Implementations/Demos
-  tpl: demos.html
-  css: project
+- id: what-is-servirtium
+  i18n: nav.what_is_servirtium
+  name: What It Is
+  tpl: what-is.html
+  css:
 
 - id: tcks
   i18n: nav.tck
@@ -42,4 +42,3 @@
   tpl: blog.html
   page: blog/
   css: testimonials navy-section
-
