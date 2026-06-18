@@ -94,4 +94,49 @@
   .prose-servirtium svg {
     @apply mx-auto my-6 max-w-full;
   }
+
+  /* Prose styling for blog post bodies (Markdown -> HTML). */
+  .article-prose {
+    @apply text-slate-700 dark:text-slate-300;
+  }
+  .article-prose h1 { @apply mt-10 text-3xl font-bold text-slate-900 dark:text-white; }
+  .article-prose h2 { @apply mt-10 text-2xl font-bold text-slate-900 dark:text-white; }
+  .article-prose h3 { @apply mt-8 text-xl font-semibold text-slate-900 dark:text-white; }
+  .article-prose h4 { @apply mt-6 text-lg font-semibold text-slate-900 dark:text-white; }
+  .article-prose p { @apply mt-4 leading-relaxed; }
+  .article-prose ul { @apply mt-4 list-disc space-y-1.5 pl-6; }
+  .article-prose ol { @apply mt-4 list-decimal space-y-1.5 pl-6; }
+  .article-prose li { @apply leading-relaxed; }
+  .article-prose blockquote {
+    @apply mt-6 border-l-4 border-brand-400 bg-slate-50 py-2 pl-4 italic text-slate-600
+           dark:bg-slate-900 dark:text-slate-400;
+  }
+  .article-prose code {
+    @apply rounded bg-slate-100 px-1.5 py-0.5 text-[0.85em] text-slate-800
+           dark:bg-slate-800 dark:text-slate-200;
+  }
+  .article-prose pre {
+    @apply mt-6 overflow-x-auto rounded-lg bg-slate-900 p-4 text-sm text-slate-100;
+  }
+  .article-prose pre code {
+    @apply bg-transparent p-0 text-inherit;
+  }
+  .article-prose img {
+    @apply mx-auto my-6 max-w-full rounded-lg;
+  }
+  .article-prose a {
+    @apply font-medium underline decoration-brand-400 underline-offset-2;
+  }
+  .article-prose hr {
+    @apply my-8 border-slate-200 dark:border-slate-800;
+  }
+  .article-prose table {
+    @apply mt-6 w-full border-collapse text-sm;
+  }
+  .article-prose th, .article-prose td {
+    @apply border border-slate-200 px-3 py-2 text-left dark:border-slate-700;
+  }
+  .article-prose iframe {
+    @apply mx-auto my-6 aspect-video w-full rounded-lg;
+  }
 }

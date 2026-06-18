@@ -1,56 +1,36 @@
 ---
-layout: default
+layout: page
 ---
+<article class="mx-auto max-w-3xl px-6 py-16">
+  <a href="{{ '/blog/' | prepend: site.baseurl }}" class="text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400">&larr; All posts</a>
 
-<div class="wrapper wrapper-content  animated fadeInRight article">
-    <div class="row">
-        <div class="col-lg-10 col-lg-offset-1">
-            <div class="ibox">
-                <div class="ibox-content">
-                    <div class="pull-right">
-                    	{% for category in page.categories %}
-                        	<a class="btn btn-white btn-xs" href="{{ category | downcase | prepend: '/' | prepend: site.baseurl }}">{{ category }}</a>
-                        {% endfor %}
-                    </div>
-                    <div class="text-center article-title">
-                    <span class="text-muted"><i class="fa fa-clock-o"></i> {{ page.date | date: "%-d %b %Y" }}</span>
-                        <h1>
-                            {{ page.title }}
-                        </h1>
-                    </div>
-                    	{{ content }}
-                    <hr>
-                    <div class="row">
-                        <div class="col-md-6">
-                                <h5 style="display: inline;">Tags:</h5>
-                                {% for tag in page.tags %}
-                                    <button class="btn btn-white btn-xs" type="button">{{ tag }}</button>
-                                {% endfor %}
-                        </div>
-                        <div class="col-md-6">
-                            <div class="small text-right">
-                                <div>
-                                {% if site.disqus %}
-                                <i class="fa fa-comments-o"> </i> <span class="disqus-comment-count" data-disqus-url="{{ site.url }}{{ page.url }}">0</span> comments
-                                {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <br>
-                    <div class="row">
-                        <div class="col-lg-12">
-                            <br>
-                            <!-- share -->
-                            {% include share.html %}
-                            <br>
-                            <!-- comment -->
-                            {% include comments.html %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+  <header class="mt-6 border-b border-slate-200 pb-8 dark:border-slate-800">
+    {% if page.categories %}
+    <div class="mb-3 flex flex-wrap gap-2">
+      {% for category in page.categories %}
+        <a class="rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700 dark:bg-brand-950/50 dark:text-brand-300"
+           href="{{ category | downcase | prepend: '/' | prepend: site.baseurl }}">{{ category }}</a>
+      {% endfor %}
     </div>
+    {% endif %}
+    <h1 class="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white md:text-4xl">{{ page.title }}</h1>
+    <p class="mt-3 text-sm text-slate-500 dark:text-slate-400">
+      {{ page.date | date: "%-d %B %Y" }} · {{ site.author.name }}
+    </p>
+  </header>
 
-</div>
+  <div class="article-prose mt-10">
+    {{ content }}
+  </div>
+
+  {% if page.tags %}
+  <footer class="mt-12 border-t border-slate-200 pt-6 dark:border-slate-800">
+    <div class="flex flex-wrap items-center gap-2">
+      <span class="text-sm font-semibold text-slate-700 dark:text-slate-300">Tags:</span>
+      {% for tag in page.tags %}
+        <span class="rounded border border-slate-200 px-2 py-0.5 text-xs text-slate-600 dark:border-slate-700 dark:text-slate-400">{{ tag }}</span>
+      {% endfor %}
+    </div>
+  </footer>
+  {% endif %}
+</article>

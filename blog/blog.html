@@ -1,48 +1,30 @@
 ---
-layout: blog
+layout: page
 title: Blog
 permalink: /blog/
 ---
 
-<div class="row">
-    <div class="col-lg-12 text-center">
-        <div class="navy-line"></div>
-        <h1>Latest Blog</h1>
-    </div>
+<div class="mx-auto max-w-3xl px-6 py-16">
+  <div class="text-center">
+    <p class="eyebrow">News</p>
+    <h1 class="mt-3 text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">Blog</h1>
+    <p class="mx-auto mt-4 max-w-xl text-slate-600 dark:text-slate-300">
+      Implementation notes, demos, and writing on TCKs and service virtualization.
+    </p>
+  </div>
+
+  <ul class="mt-12 space-y-4">
+    {% for post in site.posts %}
+    <li>
+      <a href="{{ post.url | prepend: site.baseurl }}"
+         class="group block rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-brand-400 hover:shadow-md dark:border-slate-800 dark:bg-slate-900 dark:hover:border-brand-500">
+        <p class="font-mono text-xs text-brand-600 dark:text-brand-400">{{ post.date | date: "%-d %b %Y" }}</p>
+        <h2 class="mt-1 text-lg font-semibold text-slate-900 transition group-hover:text-brand-600 dark:text-white dark:group-hover:text-brand-400">{{ post.title }}</h2>
+        {% if post.excerpt %}
+        <p class="mt-2 line-clamp-2 text-sm text-slate-600 dark:text-slate-400">{{ post.excerpt | strip_html | truncate: 160 }}</p>
+        {% endif %}
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
 </div>
-
-<div class="row">
-    <div class="col-lg-8 col-lg-offset-2">
-        <div class="wrapper wrapper-content animated fadeInRight">
-
-            <!-- latest 10 blog -->
-			{% for post in site.posts limit:10 %}
-            <div class="vote-item">
-                <div class="row">
-                    <div class="col-md-10">
-                        <div class="vote-actions">
-                        </div>
-                        <a href="{{ post.url | prepend: site.baseurl }}" class="vote-title">
-                            {{ post.title }}
-                        </a>
-                        <div class="vote-info">
-                        {% if site.disqus %}
-                            <i class="fa fa-comments-o"> </i> <a>Comments (<span class="disqus-comment-count" data-disqus-url="{{ site.url }}{{ post.url }}">0</span>)</a>
-                        {% endif %}
-                            <i class="fa fa-clock-o"></i> <a>{{ post.date | date: "%-d %b %Y" }}</a>
-                            <i class="fa fa-user"></i> <a>{{ site.author.name }}</a>
-                        </div>
-                    </div>
-                    <div class="col-md-2 ">
-                        <div class="vote-icon">
-                            {% if post.icon %}<i class="fa {{ post.icon }}"> </i>{% endif %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-
-</div>
-
