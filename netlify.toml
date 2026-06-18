@@ -1,0 +1,10 @@
+# Netlify build: compile the Tailwind stylesheet before Jekyll runs, then
+# build the static site. app.css is also committed so GitHub Pages (which
+# does not run Node) serves the same stylesheet.
+[build]
+  command = "npm ci && npm run css:build && bundle exec jekyll build"
+  publish = "_site"
+
+[build.environment]
+  NODE_VERSION = "22"
+  RUBY_VERSION = "3.1.2"

@@ -3,30 +3,17 @@ layout: null
 title: 404
 permalink: /404.html
 ---
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>404 Error</title>
-    <!-- Mainly CSS -->
-    <link href="{{ "/static/assets/app-20180125.min.css" | prepend: site.baseurl }}" rel="stylesheet">
-    <link href="{{ "/static/css/custom.css" | prepend: site.baseurl }}" rel="stylesheet">
-</head>
-<body class="gray-bg">
-    <div class="middle-box text-center animated fadeInDown">
-        <h1>404</h1>
-        <h3 class="font-bold">Page Not Found</h3>
-        <div class="error-desc">
-            <p>
-            Sorry, but the page you are looking for has not been found. Try checking the URL for error, then hit the refresh button on your browser or try found something else in my website.
-            </p>
-            <div>
-                <a class="btn btn-primary" href="{{ "/" | prepend: site.baseurl }}">Home</a>
-            </div>
-        </div>
-    </div>
-    <!-- Mainly scripts -->
-    <script src="{{"/static/assets/app-20180125.min.js"| prepend: site.baseurl }}"></script>
+<!doctype html>
+<html lang="en">
+{% include tw_head.html %}
+<body class="grid min-h-screen place-items-center bg-white px-6 text-center dark:bg-slate-950">
+  <div>
+    <p class="font-mono text-7xl font-extrabold text-brand-500">404</p>
+    <h1 class="mt-4 text-2xl font-bold text-slate-900 dark:text-white">Page not found</h1>
+    <p class="mx-auto mt-3 max-w-md text-slate-600 dark:text-slate-400">
+      That page isn't here. Check the URL, or head back to the home page.
+    </p>
+    <a class="btn-primary mt-8" href="{{ '/' | prepend: site.baseurl }}">&larr; Back home</a>
+  </div>
 </body>
 </html>
