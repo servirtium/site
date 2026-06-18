@@ -7,6 +7,11 @@
             <p class="mt-6 text-lg text-slate-600 dark:text-slate-300"><strong class="font-semibold text-slate-800 dark:text-slate-100">This is the tape file your tests commit and diff.</strong> One readable Markdown
                 document captures the whole HTTP conversation &mdash; request, response, headers, bodies &mdash;
                 so a change to the API shows up as an ordinary line-by-line diff in code review.</p>
+            <p class="mt-4 text-slate-600 dark:text-slate-400">Each payload sits in a Markdown code fence, so the
+                XML or JSON appears verbatim &mdash; pretty-printed and unescaped. Compare that with stuffing an XML
+                body into a JSON (or YAML) cassette, where it has to be escaped into a single unreadable string with
+                <code>\"</code> and <code>\n</code> everywhere. A fenced block keeps the payload exactly as it went
+                over the wire, which is what makes the diffs legible.</p>
             <p class="mt-4 text-slate-600 dark:text-slate-400">Here's some raw Servirtium markdown source &mdash; shown as inline SVG, so the
                 text is real (selectable, searchable) and stays crisp at any zoom:</p>
             <p>

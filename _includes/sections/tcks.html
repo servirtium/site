@@ -189,9 +189,9 @@
                 </div>
                 <p>
                     Oh and yes, a Markdown representation of one or more HTTP interactions is the easiest for seeing
-                    differences in changed recording. That is because XML and JSON payloads can be reformatted to
-                    be 'pretty' in the markdown recordings. There's no escaping XML inside JSON (or similar) with
-                    Servirtium's choice of markdown.
+                    differences in a changed recording. That is because XML and JSON payloads sit in Markdown code
+                    fences, where they stay pretty-printed and verbatim. There's none of the escaping you'd get from
+                    cramming an XML body into a JSON (or YAML) cassette field &mdash; so the diffs read cleanly.
                 </p>
 
                 <div class="text-center">

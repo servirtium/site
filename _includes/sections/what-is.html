@@ -59,8 +59,9 @@
       <h3 class="text-xl font-bold text-slate-900 dark:text-white">The Markdown difference</h3>
       <ul class="mt-3 space-y-2 text-slate-600 dark:text-slate-400">
         <li class="flex gap-2"><span class="text-brand-500">&middot;</span> Markdown renders well on GitHub and other code portals;</li>
-        <li class="flex gap-2"><span class="text-brand-500">&middot;</span> XML inside a Markdown code block still looks like XML — it isn't escaped;</li>
-        <li class="flex gap-2"><span class="text-brand-500">&middot;</span> JSON inside a Markdown code block still looks like JSON — it isn't escaped.</li>
+        <li class="flex gap-2"><span class="text-brand-500">&middot;</span> an XML payload in a Markdown code fence still looks like XML — verbatim and unescaped;</li>
+        <li class="flex gap-2"><span class="text-brand-500">&middot;</span> a JSON payload in a Markdown code fence still looks like JSON — verbatim and unescaped;</li>
+        <li class="flex gap-2"><span class="text-brand-500">&middot;</span> compare that to embedding the same body inside a JSON or YAML cassette, where it gets escaped into one unreadable string — the fenced block keeps the payload (and its diffs) legible.</li>
       </ul>
     </div>
 
