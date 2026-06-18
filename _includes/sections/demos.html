@@ -1,153 +1,101 @@
-<div class="container" id="i18_projects">
-    <div class="row m-b-lg">
-        <div class="col-lg-12 text-center">
-            <div class="navy-line"></div>
-            <h1>Servirtium VCR &mdash; one engine, many languages</h1>
-        </div>
-    </div>
+<div class="section">
+  <div class="mx-auto max-w-3xl text-center">
+    <p class="eyebrow">Servirtium VCR</p>
+    <h2 class="mt-3 text-3xl font-bold tracking-tight text-slate-900 dark:text-white md:text-4xl">One engine, many languages</h2>
+    <p class="mt-5 text-lg text-slate-600 dark:text-slate-300">
+      <a href="https://github.com/servirtium/servirtium-vcr">servirtium-vcr</a> is the current direction for
+      Servirtium. Instead of a separate re-implementation per language, there is a single record/replay
+      <strong class="font-semibold text-slate-800 dark:text-slate-100">engine</strong> — Markdown
+      parser/emitter, HTTP server, request matching, redaction, whole-tape normalization and drift detection —
+      built once as a native shared library, with a
+      <strong class="font-semibold text-slate-800 dark:text-slate-100">thin FFI binding per language</strong> on top.
+    </p>
+    <p class="mt-4 text-slate-600 dark:text-slate-300">
+      Because every language drives the <em>same</em> engine, cross-language compatibility is a
+      <strong class="font-semibold text-slate-800 dark:text-slate-100">build-time guarantee</strong>, not something
+      each library re-derives and drifts on. One monorepo, seventeen bindings, one build.
+    </p>
+  </div>
 
-    <div class="row">
-        <div class="col-lg-10 col-lg-offset-1">
-            <p><a href="https://github.com/servirtium/servirtium-vcr">servirtium-vcr</a>
-                is the current direction for Servirtium. Instead of a separate re-implementation
-                per language, there is a single record/replay <strong>engine</strong> &mdash;
-                the Servirtium markdown parser/emitter, the HTTP server, request matching,
-                redaction, whole-tape normalization and drift detection &mdash; built once as a
-                native shared library, with a <strong>thin FFI binding per language</strong>
-                on top.</p>
-            <p>Because every language drives the <em>same</em> engine, Servirtium
-                compatibility across languages is a <strong>build-time guarantee</strong> rather
-                than something each library re-derives and drifts on. One monorepo, seventeen
-                bindings, one build.</p>
-        </div>
-    </div>
-    <br>
-
-    <table class="table">
-        <thead>
+  <!-- Bindings table -->
+  <div class="mx-auto mt-12 max-w-4xl overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800">
+    <table class="w-full text-left text-sm">
+      <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-800/60 dark:text-slate-400">
         <tr>
-            <th scope="col">Language</th>
-            <th scope="col">Binding mechanism</th>
-            <th scope="col">In the monorepo</th>
+          <th class="px-4 py-3 font-semibold">Language</th>
+          <th class="px-4 py-3 font-semibold">Binding mechanism</th>
+          <th class="px-4 py-3 font-semibold">In the monorepo</th>
         </tr>
-        </thead>
-        <tbody>
-        <tr><th scope="row">Go</th><td>cgo</td>
-            <td><a href="https://github.com/servirtium/servirtium-vcr/tree/main/go">go/</a></td></tr>
-        <tr><th scope="row">Python</th><td>ctypes</td>
-            <td><a href="https://github.com/servirtium/servirtium-vcr/tree/main/python">python/</a></td></tr>
-        <tr><th scope="row">Java</th><td>FFM / Panama (JDK 22+)</td>
-            <td><a href="https://github.com/servirtium/servirtium-vcr/tree/main/java">java/</a></td></tr>
-        <tr><th scope="row">.NET</th><td>P/Invoke</td>
-            <td><a href="https://github.com/servirtium/servirtium-vcr/tree/main/dotnet">dotnet/</a></td></tr>
-        <tr><th scope="row">Rust</th><td>libloading</td>
-            <td><a href="https://github.com/servirtium/servirtium-vcr/tree/main/rust">rust/</a></td></tr>
-        <tr><th scope="row">Ruby</th><td>Fiddle</td>
-            <td><a href="https://github.com/servirtium/servirtium-vcr/tree/main/ruby">ruby/</a></td></tr>
-        <tr><th scope="row">JavaScript &amp; TypeScript</th><td>koffi (Node)</td>
-            <td><a href="https://github.com/servirtium/servirtium-vcr/tree/main/javascript">javascript/</a></td></tr>
-        <tr><th scope="row">Dart (and Flutter)</th><td>dart:ffi</td>
-            <td><a href="https://github.com/servirtium/servirtium-vcr/tree/main/dart">dart/</a></td></tr>
-        <tr><th scope="row">PHP</th><td>ext-ffi</td>
-            <td><a href="https://github.com/servirtium/servirtium-vcr/tree/main/php">php/</a></td></tr>
-        <tr><th scope="row">Haskell</th><td>foreign import ccall</td>
-            <td><a href="https://github.com/servirtium/servirtium-vcr/tree/main/haskell">haskell/</a></td></tr>
-        <tr><th scope="row">Elixir</th><td>shares the Erlang NIF (BEAM)</td>
-            <td><a href="https://github.com/servirtium/servirtium-vcr/tree/main/elixir">elixir/</a></td></tr>
-        <tr><th scope="row">Pharo (Smalltalk)</th><td>UnifiedFFI</td>
-            <td><a href="https://github.com/servirtium/servirtium-vcr/tree/main/pharo">pharo/</a></td></tr>
-        <tr><th scope="row">Nim</th><td>importc (linked)</td>
-            <td><a href="https://github.com/servirtium/servirtium-vcr/tree/main/nim">nim/</a></td></tr>
-        <tr><th scope="row">Zig</th><td>extern C (linked)</td>
-            <td><a href="https://github.com/servirtium/servirtium-vcr/tree/main/zig">zig/</a></td></tr>
-        <tr><th scope="row">Lua</th><td>C extension (Lua 5.4)</td>
-            <td><a href="https://github.com/servirtium/servirtium-vcr/tree/main/lua">lua/</a></td></tr>
-        <tr><th scope="row">Erlang</th><td>C NIF (canonical, shared)</td>
-            <td><a href="https://github.com/servirtium/servirtium-vcr/tree/main/erlang">erlang/</a></td></tr>
-        <tr><th scope="row">Gleam</th><td>shares the Erlang NIF (BEAM)</td>
-            <td><a href="https://github.com/servirtium/servirtium-vcr/tree/main/gleam">gleam/</a></td></tr>
-        </tbody>
+      </thead>
+      <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+        {% assign bindings = "Go|cgo|go;Python|ctypes|python;Java|FFM / Panama (JDK 22+)|java;.NET|P/Invoke|dotnet;Rust|libloading|rust;Ruby|Fiddle|ruby;JavaScript & TypeScript|koffi (Node)|javascript;Dart (and Flutter)|dart:ffi|dart;PHP|ext-ffi|php;Haskell|foreign import ccall|haskell;Elixir|shares the Erlang NIF (BEAM)|elixir;Pharo (Smalltalk)|UnifiedFFI|pharo;Nim|importc (linked)|nim;Zig|extern C (linked)|zig;Lua|C extension (Lua 5.4)|lua;Erlang|C NIF (canonical, shared)|erlang;Gleam|shares the Erlang NIF (BEAM)|gleam" | split: ";" %}
+        {% for b in bindings %}
+          {% assign parts = b | split: "|" %}
+          <tr class="bg-white transition hover:bg-brand-50/50 dark:bg-slate-900 dark:hover:bg-slate-800/50">
+            <th scope="row" class="px-4 py-3 font-semibold text-slate-900 dark:text-white">{{ parts[0] }}</th>
+            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">{{ parts[1] }}</td>
+            <td class="px-4 py-3"><a class="font-mono text-xs" href="https://github.com/servirtium/servirtium-vcr/tree/main/{{ parts[2] }}">{{ parts[2] }}/</a></td>
+          </tr>
+        {% endfor %}
+      </tbody>
     </table>
-    <p class="text-center"><small>The seventeen bindings build and test through one
-        <a href="https://github.com/aether-lang-org/aeb">aeb</a> run against the shared
-        <code>libservirtium_vcr.so</code>. See the
-        <a href="https://github.com/servirtium/servirtium-vcr#bindings">monorepo README</a>
-        for per-language quick-starts and docs.</small></p>
+  </div>
+  <p class="mx-auto mt-4 max-w-4xl text-center text-sm text-slate-500 dark:text-slate-400">
+    The seventeen bindings build and test through one
+    <a href="https://github.com/aether-lang-org/aeb">aeb</a> run against the shared
+    <code>libservirtium_vcr.so</code>. See the
+    <a href="https://github.com/servirtium/servirtium-vcr#bindings">monorepo README</a> for per-language quick-starts.
+  </p>
 
-    <div class="row">
-        <div class="col-lg-10 col-lg-offset-1">
-            <p>On the JVM, the Java binding also serves <strong>Kotlin, Scala,
-                Clojure and Groovy</strong> — thin idiomatic layers (a Kotlin
-                trailing-lambda DSL, a Groovy <code>Closure</code> DSL, Scala
-                helpers, Clojure fns + <code>with-open</code>) over the same jar,
-                with no second native FFI.</p>
-        </div>
-    </div>
+  <!-- JVM callout -->
+  <div class="mx-auto mt-8 max-w-4xl rounded-xl border border-brand-200 bg-brand-50 p-5 dark:border-brand-900 dark:bg-brand-950/40">
+    <p class="text-sm text-slate-700 dark:text-slate-300">
+      On the JVM, the Java binding also serves <strong>Kotlin, Scala, Clojure and Groovy</strong> — thin idiomatic
+      layers (a Kotlin trailing-lambda DSL, a Groovy <code>Closure</code> DSL, Scala helpers, Clojure fns +
+      <code>with-open</code>) over the same jar, with no second native FFI.
+    </p>
+  </div>
 
-    <br>
-    <hr>
+  <!-- Earlier implementations -->
+  <div class="mx-auto mt-16 max-w-4xl">
+    <div class="text-center">
+      <h3 class="text-2xl font-bold text-slate-900 dark:text-white">Other &amp; earlier implementations</h3>
+    </div>
+    <p class="mt-4 text-slate-600 dark:text-slate-400">
+      <strong><a href="https://github.com/http4k/http4k/tree/master/http4k-testing/servirtium">http4k-testing/servirtium</a></strong>
+      (David Denton) is an independent, mature Servirtium implementation for Kotlin and Java, shipped as part of the
+      <a href="https://www.http4k.org/">http4k</a> toolkit — demo:
+      <a href="https://github.com/http4k/servirtium-demo-kotlin-climate-tck">servirtium-demo-kotlin-climate-tck</a>
+      (Kotlin and Java/JUnit5), and
+      <a href="https://github.com/servirtium/jbehave-servirtium-climate-tck-demo">jbehave-servirtium-climate-tck-demo</a> (JBehave).
+    </p>
+    <p class="mt-3 text-slate-600 dark:text-slate-400">
+      Servirtium also began life as standalone per-language libraries, most now folded into
+      <strong>servirtium-vcr</strong> above. They remain in the
+      <a href="https://github.com/servirtium">servirtium GitHub org</a>, with thanks to the people who built them:
+    </p>
 
-    <div class="row m-b-lg">
-        <div class="col-lg-12 text-center">
-            <h2>Other &amp; earlier implementations</h2>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-lg-10 col-lg-offset-1">
-            <p><strong><a href="https://github.com/http4k/http4k/tree/master/http4k-testing/servirtium">http4k-testing/servirtium</a></strong>
-                (David Denton) is an independent, mature Servirtium implementation for Kotlin
-                and Java, shipped as part of the <a href="https://www.http4k.org/">http4k</a>
-                toolkit &mdash; demo:
-                <a href="https://github.com/http4k/servirtium-demo-kotlin-climate-tck">servirtium-demo-kotlin-climate-tck</a>
-                (Kotlin and Java/JUnit5), and
-                <a href="https://github.com/servirtium/jbehave-servirtium-climate-tck-demo">jbehave-servirtium-climate-tck-demo</a>
-                (JBehave).</p>
-            <p>Servirtium also began life as a set of standalone per-language libraries, most
-                of which are now folded into <strong>servirtium-vcr</strong> above. They remain
-                in the <a href="https://github.com/servirtium">servirtium GitHub org</a>, with
-                thanks to the people who built them:</p>
-        </div>
-    </div>
-    <table class="table">
-        <thead>
-        <tr>
-            <th scope="col">Language</th>
-            <th scope="col">Earlier standalone library</th>
-            <th scope="col">Author(s)</th>
-        </tr>
+    <div class="mt-6 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800">
+      <table class="w-full text-left text-sm">
+        <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-800/60 dark:text-slate-400">
+          <tr>
+            <th class="px-4 py-3 font-semibold">Language</th>
+            <th class="px-4 py-3 font-semibold">Earlier standalone library</th>
+            <th class="px-4 py-3 font-semibold">Author(s)</th>
+          </tr>
         </thead>
-        <tbody>
-        <tr><th scope="row">JavaScript &amp; TypeScript</th>
-            <td><a href="https://github.com/servirtium/archive-servirtium-javascript">archive-servirtium-javascript</a></td>
-            <td>Duong Pham</td></tr>
-        <tr><th scope="row">.NET</th>
-            <td><a href="https://github.com/servirtium/archive-servirtium-dotnet">archive-servirtium-dotnet</a></td>
-            <td>Stephen Hand</td></tr>
-        <tr><th scope="row">Go</th>
-            <td><a href="https://github.com/servirtium/archive-servirtium-go">archive-servirtium-go</a></td>
-            <td>Duong Pham</td></tr>
-        <tr><th scope="row">Python</th>
-            <td><a href="https://github.com/servirtium/archive-servirtium-python">archive-servirtium-python</a></td>
-            <td>Steve Freeman, Yogesh Naik &amp; Ross Fung</td></tr>
-        <tr><th scope="row">Ruby</th>
-            <td><a href="https://github.com/servirtium/archive-servirtium-ruby">archive-servirtium-ruby</a></td>
-            <td>Rob Park</td></tr>
-        <tr><th scope="row">Dart (and Flutter)</th>
-            <td><a href="https://github.com/servirtium/archive-servirtium-dart">archive-servirtium-dart</a></td>
-            <td>Khaleel Shaheen &amp; Hemanth Raj V</td></tr>
-        <tr><th scope="row">Rust</th>
-            <td><a href="https://github.com/servirtium/archive-servirtium-rust">archive-servirtium-rust</a></td>
-            <td>Denis Karpovskiy</td></tr>
-        <tr><th scope="row">Elixir</th>
-            <td><a href="https://github.com/servirtium/servirtium-elixir">servirtium-elixir</a></td>
-            <td>Josh Price</td></tr>
-        <tr><th scope="row">Haskell</th>
-            <td><a href="https://github.com/servirtium/archive-servirtium-haskell">archive-servirtium-haskell</a></td>
-            <td>Charlie Austin</td></tr>
-        <tr><th scope="row">Java (original)</th>
-            <td><a href="https://github.com/servirtium/archive-servirtium-java">archive-servirtium-java</a></td>
-            <td>Paul Hammant</td></tr>
+        <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+          {% assign earlier = "JavaScript & TypeScript|archive-servirtium-javascript|Duong Pham;.NET|archive-servirtium-dotnet|Stephen Hand;Go|archive-servirtium-go|Duong Pham;Python|archive-servirtium-python|Steve Freeman, Yogesh Naik & Ross Fung;Ruby|archive-servirtium-ruby|Rob Park;Dart (and Flutter)|archive-servirtium-dart|Khaleel Shaheen & Hemanth Raj V;Rust|archive-servirtium-rust|Denis Karpovskiy;Elixir|servirtium-elixir|Josh Price;Haskell|archive-servirtium-haskell|Charlie Austin;Java (original)|archive-servirtium-java|Paul Hammant" | split: ";" %}
+          {% for e in earlier %}
+            {% assign parts = e | split: "|" %}
+            <tr class="bg-white dark:bg-slate-900">
+              <th scope="row" class="px-4 py-3 font-semibold text-slate-900 dark:text-white">{{ parts[0] }}</th>
+              <td class="px-4 py-3"><a class="font-mono text-xs" href="https://github.com/servirtium/{{ parts[1] }}">{{ parts[1] }}</a></td>
+              <td class="px-4 py-3 text-slate-600 dark:text-slate-400">{{ parts[2] }}</td>
+            </tr>
+          {% endfor %}
         </tbody>
-    </table>
+      </table>
+    </div>
+  </div>
 </div>
-<br>

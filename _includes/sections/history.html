@@ -1,28 +1,24 @@
-<div class="container" id="i18_history">
-    <div class="row">
-        <div class="col-lg-12 text-center">
-            <div class="navy-line"></div>
-            <h1><span data-i18n="history.sv_history">Service Virtualization History</span></h1>
+<div class="section">
+  <div class="mx-auto max-w-3xl text-center">
+    <p class="eyebrow">History</p>
+    <h2 class="mt-3 text-3xl font-bold tracking-tight text-slate-900 dark:text-white md:text-4xl">
+      Service Virtualization history
+    </h2>
+  </div>
+
+  <ol class="relative mx-auto mt-12 max-w-2xl border-l-2 border-slate-200 dark:border-slate-700">
+    {% for event in site.data.index.history %}
+    <li class="mb-10 ml-6">
+      <span class="absolute -left-[11px] flex h-5 w-5 items-center justify-center rounded-full ring-4 ring-white dark:ring-slate-950 {% if event.present %}bg-brand-500{% else %}bg-slate-300 dark:bg-slate-600{% endif %}"></span>
+      <div class="card">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 class="font-semibold text-slate-900 dark:text-white">{{ event.name.detail }}</h3>
+          <span class="font-mono text-xs text-brand-600 dark:text-brand-400">{{ event.date.detail }}</span>
         </div>
-    </div>
-    <div class="row features-block">
-        <div class="col-lg-12">
-            <div id="vertical-timeline" class="vertical-container light-timeline center-orientation">
-            {% for event in site.data.index.history %}
-            {% assign loopindex = forloop.index | modulo: 2 %}
-                <div class="vertical-timeline-block">
-                    <div class="vertical-timeline-icon {% if event.present ==  true %} navy-bg-present {% else %} navy-bg {% endif %} wow rotateIn">
-                        <i class="fa {{ event.icon }}"></i>
-                    </div>
-                    <div class="vertical-timeline-content wow {% if loopindex == 1 %} rotateInUpRight {% else %} rotateInUpLeft {% endif %}">
-                        <h2><span data-i18n="event.{{ event.name.i18n }}">{{ event.name.detail }}</span></h2>
-                        <p><span data-i18n="event.{{ event.desc.i18n }}">{{ event.desc.detail }} </span></p>
-                        <span class="vertical-date"><span data-i18n="event.{{ event.date.i18n }}"> {{ event.date.detail }} </span>
-                        <br/> <small><span data-i18n="event.{{ event.job.i18n }}">{{ event.job.detail }}</span></small> </span>
-                    </div>
-                </div>
-            {% endfor %}
-            </div>
-        </div>
-    </div>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">{{ event.desc.detail }}</p>
+        <p class="mt-2 text-xs uppercase tracking-wide text-slate-400 dark:text-slate-500">{{ event.job.detail }}</p>
+      </div>
+    </li>
+    {% endfor %}
+  </ol>
 </div>
