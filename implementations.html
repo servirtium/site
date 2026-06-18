@@ -1,0 +1,52 @@
+---
+layout: page
+title: Other &amp; earlier implementations
+permalink: /implementations/
+desc: Independent and earlier per-language Servirtium implementations.
+---
+
+<div class="mx-auto max-w-4xl px-6 py-16">
+  <a href="{{ '/#demos' | prepend: site.baseurl }}" class="text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400">&larr; Back to Servirtium VCR</a>
+
+  <div class="mt-6 text-center">
+    <p class="eyebrow">Implementations</p>
+    <h1 class="mt-3 text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white md:text-4xl">Other &amp; earlier implementations</h1>
+  </div>
+
+  <p class="mt-8 text-slate-600 dark:text-slate-400">
+    <strong><a href="https://github.com/http4k/http4k/tree/master/http4k-testing/servirtium">http4k-testing/servirtium</a></strong>
+    (David Denton) is an independent, mature Servirtium implementation for Kotlin and Java, shipped as part of the
+    <a href="https://www.http4k.org/">http4k</a> toolkit — demo:
+    <a href="https://github.com/http4k/servirtium-demo-kotlin-climate-tck">servirtium-demo-kotlin-climate-tck</a>
+    (Kotlin and Java/JUnit5), and
+    <a href="https://github.com/servirtium/jbehave-servirtium-climate-tck-demo">jbehave-servirtium-climate-tck-demo</a> (JBehave).
+  </p>
+  <p class="mt-3 text-slate-600 dark:text-slate-400">
+    Servirtium also began life as standalone per-language libraries, most now folded into
+    <a href="https://github.com/servirtium/servirtium-vcr">servirtium-vcr</a>. They remain in the
+    <a href="https://github.com/servirtium">servirtium GitHub org</a>, with thanks to the people who built them:
+  </p>
+
+  <div class="mt-6 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800">
+    <table class="w-full text-left text-sm">
+      <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-800/60 dark:text-slate-400">
+        <tr>
+          <th class="px-4 py-3 font-semibold">Language</th>
+          <th class="px-4 py-3 font-semibold">Earlier standalone library</th>
+          <th class="px-4 py-3 font-semibold">Author(s)</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+        {% assign earlier = "JavaScript & TypeScript|archive-servirtium-javascript|Duong Pham;.NET|archive-servirtium-dotnet|Stephen Hand;Go|archive-servirtium-go|Duong Pham;Python|archive-servirtium-python|Steve Freeman, Yogesh Naik & Ross Fung;Ruby|archive-servirtium-ruby|Rob Park;Dart (and Flutter)|archive-servirtium-dart|Khaleel Shaheen & Hemanth Raj V;Rust|archive-servirtium-rust|Denis Karpovskiy;Elixir|servirtium-elixir|Josh Price;Haskell|archive-servirtium-haskell|Charlie Austin;Java (original)|archive-servirtium-java|Paul Hammant" | split: ";" %}
+        {% for e in earlier %}
+          {% assign parts = e | split: "|" %}
+          <tr class="bg-white dark:bg-slate-900">
+            <th scope="row" class="px-4 py-3 font-semibold text-slate-900 dark:text-white">{{ parts[0] }}</th>
+            <td class="px-4 py-3"><a class="font-mono text-xs" href="https://github.com/servirtium/{{ parts[1] }}">{{ parts[1] }}</a></td>
+            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">{{ parts[2] }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
