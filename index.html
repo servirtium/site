@@ -1,46 +1,72 @@
 ---
-layout: blog
+layout: landing
 title: index
 permalink: /
 ---
 
-<div class="navbar-wrapper">
-  <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
-    <div class="container">
-      <div class="navbar-header page-scroll">
-        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-          <span class="sr-only">Toggle navigation</span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-        </button>
-        <a class="navbar-brand" href="#page-top" id="i18_title"><span data-i18n="website.title">{{ site.title }}</span></a>
-      </div>
-      <div id="navbar" class="navbar-collapse collapse">
-        <ul class="nav navbar-nav navbar-right" id="i18_navbar">
-          {% for section in site.data.landing %}
-          <li>
-            {% if section.page %}
-              <a class="page-scroll" href="{{ section.page}} ">
-            {% else %}
-              <a class="page-scroll" href="{{ section.id | prepend: '#'}} ">
-            {% endif %}
-              <span data-i18n="{{ section.i18n }}">{{ section.name }}</span>
-            </a>
-          </li>
-          {% endfor %}
-        </ul>
-      </div>
-    </div>
-  </nav>
-</div>
-{% if site.index_carousel %}
-{% include carousel.html %}
-{% endif %}
+{% include tw_header.html %}
 
+<!-- ===================== HERO ===================== -->
+<section class="relative overflow-hidden bg-gradient-to-br from-brand-600 via-brand-500 to-brand-400 dark:from-brand-800 dark:via-brand-700 dark:to-brand-600">
+  <div class="absolute inset-0 opacity-10 [background-image:radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] [background-size:22px_22px]"></div>
+  <div class="relative mx-auto max-w-6xl px-6 pt-28 pb-20 md:pt-32 md:pb-28">
+    <div class="grid items-center gap-12 md:grid-cols-2">
+
+      <!-- Copy -->
+      <div class="text-white">
+        <p class="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-wider backdrop-blur">
+          Service Virtualization for tests
+        </p>
+        <h1 class="mt-5 text-4xl font-extrabold leading-tight tracking-tight md:text-5xl">
+          VCR-style HTTP<br>record &amp; replay
+        </h1>
+        <p class="mt-5 max-w-md text-lg text-white/90">
+          Like Ruby's VCR — record the HTTP your tests make, replay it offline —
+          but the tape is readable <strong class="font-semibold">Markdown</strong> you can
+          share across languages and review in a Git diff.
+        </p>
+        <div class="mt-8 flex flex-wrap gap-3">
+          <a class="inline-flex items-center gap-2 rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-brand-700 shadow-sm transition hover:bg-brand-50" href="https://github.com/servirtium/servirtium-vcr">
+            <svg class="h-4 w-4" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+            View on GitHub
+          </a>
+          <a class="inline-flex items-center gap-2 rounded-lg border border-white/40 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/10" href="#demos">
+            See the bindings
+          </a>
+        </div>
+        <p class="mt-6 text-sm text-white/70">One native engine · seventeen language bindings · byte-identical tapes</p>
+      </div>
+
+      <!-- Stylized Markdown-tape git diff -->
+      <div class="md:justify-self-end">
+        <div class="w-full max-w-md overflow-hidden rounded-xl border border-black/10 bg-white shadow-2xl dark:border-white/10 dark:bg-slate-900">
+          <div class="flex items-center gap-2 border-b border-slate-200 bg-slate-50 px-4 py-2.5 dark:border-slate-700 dark:bg-slate-800">
+            <span class="h-3 w-3 rounded-full bg-[#ff5f56]"></span>
+            <span class="h-3 w-3 rounded-full bg-[#ffbd2e]"></span>
+            <span class="h-3 w-3 rounded-full bg-[#27c93f]"></span>
+            <span class="ml-2 font-mono text-xs text-slate-500 dark:text-slate-400">get_person.md</span>
+          </div>
+          <pre class="overflow-x-auto px-4 py-4 font-mono text-[12.5px] leading-relaxed text-slate-700 dark:text-slate-300"><span class="text-slate-400">## Interaction 0: GET /person/42</span>
+
+<span class="text-slate-400">### Response body (200: application/json):</span>
+<span class="block rounded bg-slate-100 px-1 dark:bg-slate-800">  &#123;</span>
+<span class="block rounded bg-red-50 px-1 text-red-700 dark:bg-red-950/50 dark:text-red-400">-   "name": "Ada Lovelace"</span>
+<span class="block rounded bg-green-50 px-1 text-green-700 dark:bg-green-950/50 dark:text-green-400">+   "name": "Ada Lovelace",</span>
+<span class="block rounded bg-green-50 px-1 text-green-700 dark:bg-green-950/50 dark:text-green-400">+   "hairColor": "auburn"</span>
+<span class="block rounded bg-slate-100 px-1 dark:bg-slate-800">  &#125;</span></pre>
+          <div class="border-t border-slate-200 px-4 py-2.5 text-xs text-slate-500 dark:border-slate-700 dark:text-slate-400">
+            API drift shows up as an ordinary line-by-line diff in code review.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ===================== SECTIONS (converted in later phases) ===================== -->
 {% for section in site.data.landing %}
-{% assign loopindex = forloop.index | modulo: 2 %}
-<section id="{{ section.id }}" class="features {% if loopindex != 1 %} gray-section {% endif %} {{ section.css }}" style="margin-top: 0;">
-  {% include sections/{{section.tpl}} %}
+<section id="{{ section.id }}" class="features {{ section.css }}">
+  {% include sections/{{ section.tpl }} %}
 </section>
 {% endfor %}
