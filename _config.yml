@@ -43,6 +43,16 @@ sass:
 # Build settings
 encoding: utf-8
 
+# Internal docs / strategy notes — kept in the repo but never published.
+exclude:
+  - docs/
+  - node_modules/
+  - package.json
+  - package-lock.json
+  - netlify.toml
+  - README.md
+  - vendor/
+
 # other settings
 highlighter: rouge
 markdown: kramdown
