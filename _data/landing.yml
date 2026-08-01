@@ -18,6 +18,12 @@
   tpl: markdown-format.html
   css:
 
+- id: cli
+  i18n: nav.cli
+  name: CLI
+  tpl: cli.html
+  css:
+
 - id: what-is-servirtium
   i18n: nav.what_is_servirtium
   name: What It Is

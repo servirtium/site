@@ -1,0 +1,76 @@
+<div class="section">
+  <div class="mx-auto max-w-3xl text-center">
+    <p class="eyebrow">Command line</p>
+    <h2 class="mt-3 text-3xl font-bold tracking-tight text-slate-900 dark:text-white md:text-4xl">Tapes without writing code</h2>
+    <p class="mt-5 text-lg text-slate-600 dark:text-slate-300">
+      The monorepo also builds a standalone
+      <strong class="font-semibold text-slate-800 dark:text-slate-100"><code>servirtium</code> CLI</strong> —
+      a single self-contained binary with the whole engine linked in. No language binding, no shared library,
+      no runtime: a committed tape becomes a live stub server with one command, and tapes can be linted and
+      converted from the shell or a CI step.
+    </p>
+  </div>
+
+  <!-- Terminal example -->
+  <div class="mx-auto mt-10 max-w-3xl overflow-hidden rounded-xl border border-slate-200 shadow-sm dark:border-slate-800">
+    <div class="flex items-center gap-1.5 border-b border-slate-200 bg-slate-50 px-4 py-2.5 dark:border-slate-800 dark:bg-slate-900">
+      <span class="h-2.5 w-2.5 rounded-full bg-red-400"></span>
+      <span class="h-2.5 w-2.5 rounded-full bg-amber-400"></span>
+      <span class="h-2.5 w-2.5 rounded-full bg-green-400"></span>
+      <span class="ml-2 font-mono text-xs text-slate-500 dark:text-slate-400">shell</span>
+    </div>
+<pre class="overflow-x-auto bg-white p-4 text-left font-mono text-[13px] leading-6 text-slate-800 dark:bg-slate-950 dark:text-slate-200"><span class="block text-slate-400 dark:text-slate-500"># replay a committed tape as a live stub server — zero code</span>
+<span class="block">servirtium serve tapes/checkout_flow.md 8080</span>
+<span class="block">curl http://127.0.0.1:8080/api/basket</span>
+<span class="block text-slate-400 dark:text-slate-500">&#160;</span>
+<span class="block text-slate-400 dark:text-slate-500"># several tapes, comma-separated, served as one</span>
+<span class="block">servirtium serve tapes/basket.md,tapes/payment.md 8080</span>
+<span class="block text-slate-400 dark:text-slate-500">&#160;</span>
+<span class="block text-slate-400 dark:text-slate-500"># lint every tape in a pre-commit hook or CI (exit 0/1)</span>
+<span class="block">servirtium check --canonical tapes/*.md</span>
+<span class="block text-slate-400 dark:text-slate-500">&#160;</span>
+<span class="block text-slate-400 dark:text-slate-500"># capture in Chrome DevTools, convert once, replay forever</span>
+<span class="block">servirtium import capture.har tapes/from_browser.md</span></pre>
+  </div>
+
+  <!-- Subcommand cards -->
+  <div class="mx-auto mt-10 grid max-w-4xl gap-5 sm:grid-cols-2">
+    <div class="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+      <p class="font-mono text-sm font-semibold text-brand-600 dark:text-brand-400">serve &lt;tape.md&gt;[,more.md&hellip;] [port]</p>
+      <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">
+        Replays a tape — or a comma-separated list, concatenated — as a live HTTP server. Point a frontend dev
+        server at it, curl it, demo against it. By default replay is <strong>repeatable and
+        order-independent</strong> (a stub-server-style lookup that never exhausts); <code>--ordered</code>
+        switches to the strict test semantics — the recorded conversation, in order, each interaction consumed
+        once.
+      </p>
+    </div>
+    <div class="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+      <p class="font-mono text-sm font-semibold text-brand-600 dark:text-brand-400">check [--canonical] &lt;tape.md&gt; &hellip;</p>
+      <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">
+        Lints tapes: exits 0 only if every file parses as valid Servirtium markdown — made for pre-commit hooks
+        and CI gates. <code>--canonical</code> additionally requires the engine emitter's exact byte-form, so
+        golden tapes stay diff-stable across re-records.
+      </p>
+    </div>
+    <div class="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+      <p class="font-mono text-sm font-semibold text-brand-600 dark:text-brand-400">import / export (HAR bridge)</p>
+      <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">
+        Converts an HTTP Archive capture — Chrome DevTools, Fiddler, Charles, mitmproxy, Postman — into a
+        Servirtium tape, and back. Capture real traffic you can't easily proxy (a browser SPA, a mobile app),
+        convert the <code>.har</code> once, then replay it deterministically under any binding or
+        <code>serve</code>.
+      </p>
+    </div>
+    <div class="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+      <p class="font-mono text-sm font-semibold text-brand-600 dark:text-brand-400">one static binary</p>
+      <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">
+        The CLI statically links the same pure-Aether engine the seventeen bindings share — same parser, same
+        matcher, same emitter — so what <code>serve</code> replays and what <code>check</code> accepts is
+        exactly what your tests see. Built by the monorepo's one-command
+        <a href="https://github.com/servirtium/servirtium-vcr#build-aeb"><code>bootstrap.sh</code></a>
+        alongside the engine.
+      </p>
+    </div>
+  </div>
+</div>
