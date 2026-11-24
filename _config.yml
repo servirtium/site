@@ -53,6 +53,12 @@ exclude:
   - README.md
   - vendor/
 
+# one page per language binding, generated from _data/bindings.yml
+collections:
+  languages:
+    output: true
+    permalink: /languages/:name/
+
 # other settings
 highlighter: rouge
 markdown: kramdown

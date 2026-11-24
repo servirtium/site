@@ -1,0 +1,45 @@
+{%- assign b = include.b -%}
+{%- capture page_url %}{{ site.url }}/languages/{{ b.slug }}/{% endcapture -%}
+{%- capture dir_url %}https://github.com/servirtium/servirtium-vcr/tree/main/{{ b.slug }}{% endcapture -%}
+Hey Gemini or Claude or Codex,
+
+I want a test in this {{ b.name }} project to run without calling a real web service every time. Use Servirtium (https://servirtium.dev), which records HTTP conversations as readable Markdown "tapes" and replays them. Do these steps in order and tell me what you did at each one.
+
+1. Find an existing integration test in this project that calls a web service as a side effect of what it is testing. Prefer one that is slow, flaky, or needs credentials or network because of that call. Tell me which test you chose and why.
+
+2. Add the Servirtium binding for {{ b.name }}. Follow {{ page_url }} exactly.
+{%- if b.dist == "artifact" %} Servirtium ships a built package for this language on the GitHub release {{ site.data.release.tag }}: {{ b.dist_summary | remove_first: "Ships: " }}.
+{%- else %} Servirtium ships no package for this language. Vendor the binding's source into the project at the release tag {{ site.data.release.tag }} and put the native library from the same release where the page says: {{ b.dist_summary | remove_first: "Ships: " }}.
+{%- endif %}
+   Toolchain and minimum version: {{ b.toolchain }}.
+   How the binding finds the native library: {{ b.library_lookup }}
+{%- if b.family == "jvm" %}
+   This is a thin layer over the Java binding: install the Java jar (dev.servirtium:vcr) too, as the page says.
+{%- elsif b.family == "clr" %}
+   This is a thin layer over the .NET binding: install the Servirtium.Vcr package too, as the page says.
+{%- endif %}
+
+3. Route that test's HTTP client to the Servirtium VCR's base URL instead of the real service, using the idiomatic {{ b.name }} way of setting a base URL or HTTP client. The VCR starts on its own port (use port 0, so it picks a free one) and gives you its base URL; give that URL to the client and never hard-code a port.
+
+4. Run the test once in record mode against the real service. Commit the recording when the test passes and discard it when the test fails: a record VCR that is closed without a commit or a discard writes no tape and raises an error. Use redact_credentials (the spelling for {{ b.name }} is on the page) so secrets become numbered tokens, and remove volatile request headers such as User-Agent and Date from the tape so playback does not depend on them.
+
+5. Keep the tape beside the test as readable Markdown, in version control. Open it and check there are no secrets or personal data in it before committing.
+
+6. Make the test play back by default, with an explicit switch (for example an environment variable such as SERVIRTIUM_RECORD=1) that re-records.
+
+7. Prove it works offline: make the real service unreachable (network off, or a wrong host) and show the test still passes in playback.
+
+Traps to avoid:
+- A record VCR needs Commit() or Discard(); closing it without either writes nothing and raises.
+- The VCR runs in your test process on its own port; the system under test must use the VCR's base URL, not the real one.
+{%- for n in b.notes %}
+- {{ n }}
+{%- endfor %}
+{%- if b.slug == "fsharp" %}
+- A 32-bit process is not supported: there is no 32-bit native engine. Use x64 or ARM64 (on .NET Framework 4.8, set PlatformTarget to x64 and Prefer32Bit to false).
+{%- endif %}
+
+References:
+- This language's page: {{ page_url }}
+- The binding's directory: {{ dir_url }}
+- Concepts, features and every language's quick start: {{ site.url }}/llms-full.txt (index: {{ site.url }}/llms.txt)

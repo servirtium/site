@@ -1,0 +1,79 @@
+---
+layout: page
+---
+{%- assign b = site.data.bindings | where: "slug", page.slug | first -%}
+{%- assign gh = "https://github.com/servirtium/servirtium-vcr" -%}
+<article class="mx-auto max-w-4xl px-6 py-16">
+  <a href="{{ '/languages/' | prepend: site.baseurl }}" class="text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400">&larr; All languages</a>
+
+  <header class="mt-6 border-b border-slate-200 pb-8 dark:border-slate-800">
+    <p class="eyebrow">Servirtium for</p>
+    <h1 class="mt-2 text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white md:text-4xl">{{ b.name }}</h1>
+    <p class="mt-4 text-lg text-slate-600 dark:text-slate-300">
+      {% if b.dist == "artifact" %}Ships a built package on the GitHub release.{% else %}No shipped package: vendor the binding's source at a release tag, with the native library from the release.{% endif %}
+      Release <code>{{ site.data.release.tag }}</code>.
+    </p>
+    <dl class="mt-6 grid gap-x-8 gap-y-3 text-sm sm:grid-cols-[10rem_1fr]">
+      <dt class="font-semibold text-slate-900 dark:text-white">FFI mechanism</dt>
+      <dd class="text-slate-600 dark:text-slate-400">{{ b.mechanism }}{% if b.mechanism_note %}. {{ b.mechanism_note }}{% endif %}</dd>
+      <dt class="font-semibold text-slate-900 dark:text-white">Toolchain</dt>
+      <dd class="text-slate-600 dark:text-slate-400">{{ b.toolchain }}</dd>
+      <dt class="font-semibold text-slate-900 dark:text-white">Distribution</dt>
+      <dd class="text-slate-600 dark:text-slate-400">{% include tok.html text=b.dist_summary %}</dd>
+      <dt class="font-semibold text-slate-900 dark:text-white">Finding the library</dt>
+      <dd class="text-slate-600 dark:text-slate-400">{% include tok.html text=b.library_lookup %}</dd>
+      <dt class="font-semibold text-slate-900 dark:text-white">On GitHub</dt>
+      <dd class="text-slate-600 dark:text-slate-400"><a href="{{ gh }}/tree/main/{{ b.slug }}">{{ b.slug }}/</a> &middot; <a href="{{ gh }}/blob/main/{{ b.readme }}">README</a></dd>
+    </dl>
+  </header>
+
+  <div class="article-prose mt-8">
+    <h2 id="get-it">Getting it</h2>
+    {% if b.dist == "artifact" %}
+    <p>This language has a built artifact on the release: no source to vendor.</p>
+    {% else %}
+    <p>There is no published package for {{ b.name }}. You vendor the binding's source into your project at the release tag <code>{{ site.data.release.tag }}</code> and take the native library from the same release.</p>
+    {% endif %}
+    <ol>
+    {% for step in b.install %}
+      <li>{% include tok.html text=step.text %}
+      {% if step.code %}<pre><code class="language-{{ step.code_lang | default: 'sh' }}">{% include tok.html text=step.code %}</code></pre>{% endif %}
+      </li>
+    {% endfor %}
+    </ol>
+
+    <h2 id="record">Record</h2>
+    <p>Point your client at the VCR's base URL; the VCR forwards to the real service and hands back the real response. Nothing is written until you commit.</p>
+    <pre><code class="language-{{ b.code_lang }}">{% include tok.html text=b.record %}</code></pre>
+
+    <h2 id="playback">Playback</h2>
+    <p>The same tape, replayed with no network.</p>
+    <pre><code class="language-{{ b.code_lang }}">{% include tok.html text=b.playback %}</code></pre>
+
+    {% if b.extras.size > 0 %}
+    <h2 id="extras">Idiomatic extras</h2>
+    {% for x in b.extras %}
+    <h3>{{ x.title }}</h3>
+    {% if x.note %}<p>{% include tok.html text=x.note %}</p>{% endif %}
+    <pre><code class="language-{{ b.code_lang }}">{% include tok.html text=x.code %}</code></pre>
+    {% endfor %}
+    {% endif %}
+
+    {% if b.notes.size > 0 %}
+    <h2 id="traps">Gotchas</h2>
+    <ul>{% for n in b.notes %}<li>{% include tok.html text=n %}</li>{% endfor %}</ul>
+    {% endif %}
+
+    <h2 id="agent-prompt">Prompt for your coding agent</h2>
+    <p>Paste this into Claude, Codex, Gemini or any coding agent, in your {{ b.name }} project. It wraps one of your existing integration tests with Servirtium. The <a href="{{ '/agent-prompt/' | prepend: site.baseurl }}">general prompt</a> has a slot for the language instead.</p>
+    {% capture prompt_raw %}{% include lang_prompt.html b=b %}{% endcapture %}
+    {% capture prompt_t %}{% include tok_raw.html text=prompt_raw %}{% endcapture %}
+    <pre><code class="language-text">{{ prompt_t | escape }}</code></pre>
+
+    <h2 id="verified">How these snippets were checked</h2>
+    <p>{% include tok.html text=b.verified %}</p>
+    <p>They mirror these files in the repository:</p>
+    <ul>{% for t in b.tests %}<li><a href="{{ gh }}/blob/main/{{ t }}"><code>{{ t }}</code></a></li>{% endfor %}</ul>
+    <p>See also the <a href="{{ '/features/' | prepend: site.baseurl }}">feature reference</a>, <a href="{{ '/llms.txt' | prepend: site.baseurl }}">llms.txt</a> and the <a href="{{ gh }}/tree/main/{{ b.slug }}">{{ b.slug }}/ directory</a>.</p>
+  </div>
+</article>

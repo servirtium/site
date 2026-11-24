@@ -1,0 +1,49 @@
+---
+layout: page
+title: Languages
+permalink: /languages/
+desc: Servirtium VCR bindings for 30 languages, and how each is distributed.
+---
+<div class="mx-auto max-w-5xl px-6 py-16">
+  <a href="{{ '/#demos' | prepend: site.baseurl }}" class="text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400">&larr; Back to Servirtium VCR</a>
+  <div class="mt-6">
+    <p class="eyebrow">Languages</p>
+    <h1 class="mt-2 text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white md:text-4xl">Thirty languages, one engine</h1>
+    <p class="mt-4 text-slate-600 dark:text-slate-300">
+      Release <code>{{ site.data.release.tag }}</code>. Servirtium ships <strong>native libraries</strong> for Linux (glibc and musl), macOS,
+      Windows and FreeBSD, and four packaged artifacts: the Java <strong>jar</strong>, the .NET <strong>nupkg</strong>, the npm
+      <strong>tarball</strong> and the Swift <strong>artifact bundle</strong>. Nothing is on a language registry. Every other
+      language <strong>vendors the binding's source</strong> at the release tag and loads the native library from the release. Each page below
+      has the exact steps, copyable record and playback snippets, and a prompt to hand to a coding agent.
+    </p>
+    <p class="mt-3 text-sm text-slate-500 dark:text-slate-400">Using an agent for a language not listed, or not sure which to pick? Use the <a href="{{ '/agent-prompt/' | prepend: site.baseurl }}">general prompt</a>.</p>
+  </div>
+
+  <div class="mt-8 overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
+    <table class="w-full min-w-[40rem] text-left text-sm">
+      <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-800/60 dark:text-slate-400">
+        <tr>
+          <th class="px-4 py-3 font-semibold">Language</th>
+          <th class="px-4 py-3 font-semibold">Ships artifact or vendor source</th>
+          <th class="px-4 py-3 font-semibold">How to install</th>
+          <th class="px-4 py-3 font-semibold">FFI</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+        {% for b in site.data.bindings %}
+        <tr class="bg-white dark:bg-slate-900">
+          <th scope="row" class="px-4 py-3 font-semibold"><a href="{{ '/languages/' | append: b.slug | append: '/' | prepend: site.baseurl }}">{{ b.name }}</a></th>
+          <td class="px-4 py-3 text-slate-600 dark:text-slate-400">{% if b.dist == "artifact" %}<strong>Ships an artifact</strong>{% else %}Vendor source{% endif %}</td>
+          <td class="px-4 py-3 text-slate-600 dark:text-slate-400">{% include tok.html text=b.dist_summary %}</td>
+          <td class="px-4 py-3 text-slate-600 dark:text-slate-400">{{ b.mechanism }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <p class="mt-4 text-sm text-slate-500 dark:text-slate-400">
+    Kotlin, Scala, Clojure and Groovy are thin layers over the Java jar; F# is a thin layer over the .NET assembly. The BEAM languages share one NIF.
+    The platforms of the native libraries and the other assets are listed under
+    <a href="{{ '/features/#platforms-and-release' | prepend: site.baseurl }}">platforms and release</a>.
+  </p>
+</div>

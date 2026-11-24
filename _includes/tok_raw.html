@@ -1,0 +1,1 @@
+{%- assign _t = include.text | replace: '@TAG@', site.data.release.tag | replace: '@VER@', site.data.release.version | replace: '@PYVER@', site.data.release.pyversion -%}{{ _t }}

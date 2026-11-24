@@ -1,0 +1,65 @@
+---
+layout: page
+title: Prompt for your coding agent
+permalink: /agent-prompt/
+desc: A ready-to-paste prompt that has a coding agent add Servirtium record and playback to a project.
+---
+<article class="mx-auto max-w-4xl px-6 py-16">
+  <a href="{{ '/' | prepend: site.baseurl }}" class="text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400">&larr; Servirtium</a>
+  <header class="mt-6 border-b border-slate-200 pb-8 dark:border-slate-800">
+    <p class="eyebrow">For coding agents</p>
+    <h1 class="mt-2 text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white md:text-4xl">Add Servirtium with a coding agent</h1>
+    <p class="mt-4 text-lg text-slate-600 dark:text-slate-300">
+      Paste the prompt below into Claude, Codex, Gemini or any coding agent, in the project you want to test. Replace
+      <code>[LANGUAGE]</code> with your language. It has the agent pick an existing integration test that calls a web service, wrap it with
+      Servirtium, record it once, and prove it passes offline.
+    </p>
+  </header>
+  <div class="article-prose mt-8">
+    <h2 id="prompt">The prompt</h2>
+<pre><code class="language-text">Hey Gemini or Claude or Codex,
+
+I want a test in this [LANGUAGE] project to run without calling a real web service every time. Use Servirtium (https://servirtium.dev), which records HTTP conversations as readable Markdown "tapes" and replays them. Do these steps in order and tell me what you did at each one.
+
+0. Read https://servirtium.dev/llms.txt, then the page for [LANGUAGE] at https://servirtium.dev/languages/ (pick the language from the table; pages are /languages/&lt;slug&gt;/). If the project uses a JVM or .NET language, also read the Java or .NET page: Kotlin, Scala, Clojure and Groovy are thin layers over the Java jar, and F# over the .NET package.
+
+1. Find an existing integration test in this project that calls a web service as a side effect of what it is testing. Prefer one that is slow, flaky, or needs credentials or network because of that call. Tell me which test you chose and why.
+
+2. Add the Servirtium binding for [LANGUAGE], exactly as its page says. Some languages have a shipped artifact on the GitHub release (the Java jar, the .NET nupkg, the npm tarball, the Swift artifact bundle). All others have no package: vendor the binding's source into the project at the release tag, and put the native library for this platform from the same release where the page says. Say which route you used.
+
+3. Route that test's HTTP client to the Servirtium VCR's base URL instead of the real service, using the idiomatic way to set a base URL or HTTP client in this language. The VCR starts on its own port (use port 0) and gives you its base URL; never hard-code a port.
+
+4. Run the test once in record mode against the real service. Commit the recording when the test passes and discard it when the test fails. A record VCR closed without a commit or a discard writes no tape and raises an error. Use redact_credentials (spelled in the language's own style) so secrets become numbered tokens, and remove volatile request headers such as User-Agent and Date from the tape so playback does not depend on them.
+
+5. Keep the tape beside the test as readable Markdown in version control. Open it and check there are no secrets or personal data in it before committing.
+
+6. Make the test play back by default, with an explicit switch (for example an environment variable such as SERVIRTIUM_RECORD=1) that re-records.
+
+7. Prove it works offline: make the real service unreachable (network off, or a wrong host) and show the test still passes in playback.
+
+Traps to avoid:
+- A record VCR needs Commit() or Discard(); closing it without either writes nothing and raises.
+- The system under test must use the VCR's base URL, not the real one, and the VCR runs in the test process on its own port.
+- Playback fails on purpose if the request differs from the tape; values that change every run (ids, timestamps) need volatile-value rules, not a loosened test.
+- .NET: there is no 32-bit native engine. A 32-bit process (x86, or an AnyCPU exe with Prefer32Bit) fails; use x64 or ARM64.
+- Java and the JVM languages: JDK 22 or newer (Foreign Function and Memory API), with --enable-native-access=ALL-UNNAMED.
+- The BEAM, JVM and CLR languages ride on a base package (the shared NIF app, the Java jar, the .NET package): install that too.
+- The native library and the binding source must be the same release tag.
+- Never send real credentials to a model or commit them; check the tape.
+
+References:
+- Index for agents: https://servirtium.dev/llms.txt
+- Concepts, features and every language's quick start in one file: https://servirtium.dev/llms-full.txt
+- Feature reference: https://servirtium.dev/features/
+- Source: https://github.com/servirtium/servirtium-vcr
+</code></pre>
+
+    <h2 id="per-language">Prompts per language</h2>
+    <p>Each language page has the same prompt with the language filled in, its install route, toolchain and its own traps:</p>
+    <ul>
+    {% for b in site.data.bindings %}
+      <li><a href="{{ '/languages/' | append: b.slug | append: '/#agent-prompt' | prepend: site.baseurl }}">{{ b.name }}</a></li>
+    {% endfor %}
+    </ul>
+  </div>
+</article>

@@ -1,0 +1,48 @@
+---
+layout: page
+title: Features
+permalink: /features/
+desc: "Every Servirtium VCR feature: what it is for, how it behaves, an example, and where it is documented and tested."
+---
+{%- assign gh = "https://github.com/servirtium/servirtium-vcr" -%}
+<article class="mx-auto max-w-4xl px-6 py-16">
+  <a href="{{ '/' | prepend: site.baseurl }}" class="text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400">&larr; Servirtium</a>
+  <header class="mt-6 border-b border-slate-200 pb-8 dark:border-slate-800">
+    <p class="eyebrow">Reference</p>
+    <h1 class="mt-2 text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white md:text-4xl">Features</h1>
+    <p class="mt-4 text-lg text-slate-600 dark:text-slate-300">
+      What the Servirtium VCR engine does, as of <code>{{ site.data.release.tag }}</code>. One engine implements all of it, and each binding is a thin
+      wrapper, but a binding only exposes what it has wrapped: where a feature is not in every binding, its section says so. The C ABI in
+      <a href="{{ gh }}/blob/main/core/embed.ae"><code>core/embed.ae</code></a> is the definitive list of what the engine offers.
+    </p>
+  </header>
+
+  <div class="article-prose mt-8">
+    <h2 id="inventory">Inventory</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>What it is</th><th>Group</th></tr></thead>
+      <tbody>
+      {% for f in site.data.features %}
+        <tr><td><a href="#{{ f.slug }}">{{ f.title }}</a></td><td>{% include tok.html text=f.summary %}</td><td>{{ f.group }}</td></tr>
+      {% endfor %}
+        <tr><td><a href="{{ '/openapi/' | prepend: site.baseurl }}">Servirtium and OpenAPI</a></td><td>Export tapes to HAR and use existing HAR/OpenAPI tooling to infer or check a spec.</td><td>Tools</td></tr>
+      </tbody>
+    </table>
+    <p>Per-language install steps and snippets are on the <a href="{{ '/languages/' | prepend: site.baseurl }}">languages</a> pages.</p>
+
+    {% assign groups = "Recording|Playback and matching|Secrets and redaction|Values and bodies|Tools|Repository" | split: "|" %}
+    {% for g in groups %}
+    <h2 id="group-{{ g | slugify }}">{{ g }}</h2>
+    {% for f in site.data.features %}{% if f.group == g %}
+    <section id="{{ f.slug }}">
+      <h3>{{ f.title }}</h3>
+      {% capture body_t %}{% include tok_raw.html text=f.body %}{% endcapture %}
+      {{ body_t | replace: '### ', '#### ' | markdownify }}
+      {% if f.bindings %}<p><strong>Bindings:</strong> {{ f.bindings }}</p>{% endif %}
+      <p><strong>Docs:</strong>{% for d in f.docs %} <a href="{{ gh }}/blob/main/{{ d }}"><code>{{ d }}</code></a>{% endfor %}<br>
+         <strong>Tests:</strong>{% for t in f.tests %} <a href="{{ gh }}/blob/main/{{ t }}"><code>{{ t }}</code></a>{% endfor %}</p>
+    </section>
+    {% endif %}{% endfor %}
+    {% endfor %}
+  </div>
+</article>

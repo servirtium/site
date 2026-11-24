@@ -1,0 +1,32 @@
+---
+permalink: /llms.txt
+sitemap: false
+---
+# Servirtium
+
+> Servirtium records the HTTP conversations a test makes and replays them later with no network. The recording ("tape") is canonical, human-readable Markdown, so it can be reviewed in a Git diff and replayed from any language. One engine (servirtium-vcr, written in Aether, shipped as a native library with a C ABI) is wrapped by thin bindings for 30 languages. Current release: {{ site.data.release.tag }}. Nothing is on a language registry: four packaged artifacts and the native libraries are on the GitHub release, and every other language vendors the binding source at the release tag.
+
+Start here:
+
+- [Prompt for a coding agent]({{ site.url }}/agent-prompt/): a ready-to-paste prompt that wraps an existing integration test with Servirtium (record once, commit the tape, play back offline).
+- [Everything in one file]({{ site.url }}/llms-full.txt): concepts, features and every language's install steps and quick start.
+- [Languages]({{ site.url }}/languages/): table of all 30 bindings, whether each ships an artifact or vendors source, and how to install.
+- [Features]({{ site.url }}/features/): what the engine does, how it behaves, examples.
+- [Servirtium and OpenAPI]({{ site.url }}/openapi/): exporting tapes to HAR and using existing HAR/OpenAPI tooling.
+
+## Language pages
+
+{% for b in site.data.bindings -%}
+- [{{ b.name }}]({{ site.url }}/languages/{{ b.slug }}/): {% include tok_raw.html text=b.dist_summary %}
+{% endfor %}
+## Features
+
+{% for f in site.data.features -%}
+- [{{ f.title }}]({{ site.url }}/features/#{{ f.slug }}): {% include tok_raw.html text=f.summary %}
+{% endfor %}
+## Optional
+
+- [Source repository](https://github.com/servirtium/servirtium-vcr): the engine, all bindings, docs and tests.
+- [Release {{ site.data.release.tag }}](https://github.com/servirtium/servirtium-vcr/releases/tag/{{ site.data.release.tag }}): native libraries, jar, nupkg, npm tarball, Swift artifact bundle.
+- [Other and earlier implementations]({{ site.url }}/implementations/): http4k and the earlier per-language libraries.
+- [Blog]({{ site.url }}/blog/)

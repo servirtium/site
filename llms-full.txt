@@ -1,0 +1,76 @@
+---
+permalink: /llms-full.txt
+sitemap: false
+---
+# Servirtium: full reference for agents
+
+Release {{ site.data.release.tag }}. Site: {{ site.url }}. Source: https://github.com/servirtium/servirtium-vcr
+Generated at build time from the same data as the website pages.
+
+## Core concepts
+
+- Servirtium records HTTP conversations from tests and replays them without calling the real service. Record mode: a local VCR server forwards to the real upstream, returns the real response, and captures the exchange. Playback mode: the VCR answers from the tape, no network.
+- The tape is Markdown: "## Interaction N: METHOD /path", then request headers, request body, response headers and response body, each in a code fence. It lives in version control next to the tests; a change in the API shows up as a line diff.
+- Your system under test only needs the VCR's base URL. Start the VCR on port 0 (the OS picks a free port) and read its base URL. One VCR per port: many can run in one process, each with its own tape.
+- Record needs Commit(): only an explicit commit (commit() / Commit(), flush in some languages) writes the tape, and Discard() drops it. Closing a record VCR with neither writes nothing and raises an error.
+- Use redact_credentials (RedactCredentials) so Authorization, cookies and API-key headers become numbered tokens on the tape (Bearer AUTHORIZATION_1, COOKIE_1); playback matches credential headers on presence.
+- One engine, thin bindings: all logic is in the engine (core/vcr.ae, C ABI core/embed.ae). Bindings carry no logic, so tapes are byte-identical across languages.
+- Platforms: Linux x86_64 and arm64 (glibc and musl), macOS x86_64 and arm64, Windows x86_64 and arm64 (no 32-bit), FreeBSD x86_64.
+- Distribution: nothing is on a language registry. The release attaches native libraries per platform (libservirtium_vcr-<tag>-<os>-<arch>[-musl].{so,dylib,dll} with .sha256), the Java fat jar, the .NET nupkg (net8.0 and net48), the npm tarball, and the Swift artifact bundle. Every other language vendors the binding source at the release tag and uses the native library from the release.
+- Pick the language page: {{ site.url }}/languages/<slug>/ . Agent prompt: {{ site.url }}/agent-prompt/
+
+## Features
+{% for f in site.data.features %}
+### {{ f.title }} ({{ f.group }})
+
+{% include tok_raw.html text=f.body %}
+Bindings: {{ f.bindings }}
+Docs: {% for d in f.docs %}https://github.com/servirtium/servirtium-vcr/blob/main/{{ d }} {% endfor %}
+Tests: {% for t in f.tests %}https://github.com/servirtium/servirtium-vcr/blob/main/{{ t }} {% endfor %}
+{% endfor %}
+## Servirtium and OpenAPI
+
+{{ site.url }}/openapi/ : export a tape with `servirtium export <tape.md> <out.har>`, then use HAR-aware tools (for example mitmproxy2swagger -f har to infer a draft OpenAPI spec). Credential redactions carry into the HAR. `servirtium import <in.har> <out.md>` goes the other way. Servirtium itself does not validate tapes against a spec.
+
+## Languages
+{% for b in site.data.bindings %}
+### {{ b.name }}
+
+Page: {{ site.url }}/languages/{{ b.slug }}/
+Directory: https://github.com/servirtium/servirtium-vcr/tree/main/{{ b.slug }}
+FFI mechanism: {{ b.mechanism }}
+Toolchain: {{ b.toolchain }}
+Distribution: {% if b.dist == "artifact" %}ships an artifact{% else %}vendor the source at the release tag plus the native library{% endif %}. {% include tok_raw.html text=b.dist_summary %}
+Finding the library: {% include tok_raw.html text=b.library_lookup %}
+
+Install:
+{% for s in b.install %}
+{{ forloop.index }}. {% include tok_raw.html text=s.text %}
+{% if s.code %}
+```{{ s.code_lang | default: "sh" }}
+{% include tok_raw.html text=s.code %}```
+{% endif %}{% endfor %}
+Record:
+
+```{{ b.code_lang }}
+{% include tok_raw.html text=b.record %}```
+
+Playback:
+
+```{{ b.code_lang }}
+{% include tok_raw.html text=b.playback %}```
+{% for x in b.extras %}
+{{ x.title }}{% if x.note %}: {% include tok_raw.html text=x.note %}{% endif %}
+
+```{{ b.code_lang }}
+{% include tok_raw.html text=x.code %}```
+{% endfor %}{% if b.notes.size > 0 %}
+Gotchas:
+{% for n in b.notes %}- {% include tok_raw.html text=n %}
+{% endfor %}{% endif %}
+Suggested prompt for a coding agent:
+
+```text
+{% capture pr %}{% include lang_prompt.html b=b %}{% endcapture %}{% include tok_raw.html text=pr %}
+```
+{% endfor %}

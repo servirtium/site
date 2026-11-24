@@ -1,0 +1,1735 @@
+# Feature inventory. Drives /features/ and llms-full.txt.
+- slug: recording-rules-footer
+  title: Recording-rules footer
+  group: Recording
+  summary: An opt-in table at the end of a tape listing what the test left out or
+    rewrote, so a reader knows what the recording does not show.
+  body: |
+    A recording is "what was sent" unless the test says otherwise. Once a test removes headers, redacts values or declares volatile ones, a reader of the tape cannot tell what is missing. The **recording-rules footer** says so: a `## [Recording rules]` section after the last interaction, rendered by GitHub as a table.
+
+    **What it lists.** Each rule is a row: removed headers (grouped under the preset's name when a preset registered them), redactions, volatile-value rules, whole-tape collapses. The **Interactions** column shows which interactions each rule touched; `none` flags a rule that matched nothing (often a typo). A literal redaction's pattern is **never printed**, because it is often the secret itself. Header, query and JSON-key redactions print the name.
+
+    **Behaviour.**
+
+    - **Opt-in, off by default**, so existing suites' committed tapes do not change under them.
+    - Playback ignores it by design: the parser stops at the heading before it looks for interactions, so nothing in a footer can become an interaction.
+    - `redact_whole_tape_described` lets a rule show a description in place of its pattern (useful when the pattern holds a per-run value).
+    - The pre-recorded service tapes under `pre-recorded/` always turn it on.
+
+    A footer from a recording that removed the `Server` header, used `strict_ignore_common_headers` and collapsed timestamps (verified on the release macOS arm64 library, through the C ABI):
+
+    ```markdown
+    ## [Recording rules]
+
+    | Rule | Applies to | Matching | Written as | Interactions |
+    |---|---|---|---|---|
+    | removed (common client headers) | request headers | `User-Agent`, `Accept`, `Accept-Encoding`, `Connection` | (left out) | 0 |
+    | removed | response headers | `Server` | (left out) | 0 |
+    | collapsed | whole recording | *timestamps* | `2000-01-01T00:00:00Z` | 0 |
+    ```
+
+    **Bindings: only Janet wraps it so far.** In Janet it is the record option `:rules-footer true` (or `servirtium/set-rules-footer`). Every other binding needs the C ABI call (or has no public method yet).
+
+    C ABI: `aether_vcr_embed_set_rules_footer(h, 1)`.
+  docs:
+  - AGENTS.md
+  tests:
+  - core_tests/test_vcr_rules_footer.ae
+  - janet/test/playback.janet
+  bindings: 'Janet only (set-rules-footer / :rules-footer). Other bindings: C ABI
+    only'
+- slug: record-and-playback
+  title: Record and playback modes
+  group: Recording
+  summary: Playback replays a tape with no network; record forwards to a live upstream
+    and captures the exchange; each server has its own handle and port.
+  body: |
+    Servirtium has two modes. **Playback** serves a committed tape: no network, no upstream, the same answers every run. **Record** is a transparent proxy: it forwards each request to the real upstream, hands the live response back to your client, and captures the exchange for a tape.
+
+    **Behaviour.**
+
+    - You open a VCR (playback with a tape path; record with a tape path and an upstream base URL), configure it, start it, and read its `base_url`. Point the client under test at that URL.
+    - Playback matches in recorded order and consumes each interaction; opt-in options (`match_multiple`, `match_header`, `strict_headers`, `playback_range`, `pretty_json`/`pretty_xml`) refine that. A mismatch answers with a diagnostic and records an outcome you can assert on (`last_kind` is `Ok` when all is well).
+    - Record mode pairs each client connection with its own upstream connection, so connection-bound authentication such as NTLM records correctly.
+    - Every VCR is **its own server with its own handle**: any number can run in one process, one per port, and nothing about one is kept outside its handle. Rules registered on one never leak into another.
+    - Port `0` asks the OS for a free port; the real one is available after start (`port`, `base_url`). This is the default in most bindings and avoids racing other processes for a fixed port.
+    - A failed open is a dead handle that carries its reason; the binding raises it.
+
+    ```python
+    import servirtium
+
+    with servirtium.record("tapes/greeting.md", "http://127.0.0.1:8000").port(0).start() as rec:
+        fetch(rec.base_url + "/greeting")       # forwarded, answered live, captured
+        rec.commit()
+
+    with servirtium.playback("tapes/greeting.md").port(0).start() as vcr:
+        body = fetch(vcr.base_url + "/greeting")  # served from the tape, upstream not needed
+        assert vcr.last_kind is servirtium.Outcome.OK
+        vcr.assert_all_consumed()
+    ```
+
+    C ABI: `aether_vcr_embed_open_playback`, `_open_playback_url` (tape fetched over HTTP), `_open_record`, `_open_error`, `_start`, `_port`, `_base_url`, `_stop`, `_destroy`.
+  docs:
+  - README.md
+  - python/docs/usage.md
+  - release/notes/alpha.20.md
+  tests:
+  - python/test/test_record.py
+  - python/test/test_playback.py
+  - python/test/test_concurrent.py
+  - core_tests/test_vcr_start_error.ae
+  - core_tests/test_vcr_concurrent_config.ae
+  bindings: every binding
+- slug: drift-detection
+  title: Drift detection
+  group: Recording
+  summary: Re-record against the live service and fail if the new tape differs from
+    the committed one, so API changes show up as a git diff.
+  body: |
+    A tape is a claim about what a service did. **Drift detection** re-records and compares, so a real change in the service fails a test instead of silently making your tape stale. It is how a scheduled "does the tape still match reality?" job works.
+
+    **Two variants.**
+
+    - **`fail_if_changed`** (the Servirtium step-4 contract): commit writes the freshly recorded tape over the old one **and** raises if the bytes differ. A normal `git diff` then shows exactly what changed, and CI fails. When there is no tape yet, it just writes it.
+    - **flush-or-check** (`stop_and_flush_or_check`): the non-destructive variant. It writes the new recording to `<tape>.actual` beside the committed tape and byte-compares, leaving the committed tape alone. A match deletes the `.actual` file; a mismatch leaves it for inspection.
+
+    The error reads like "tape mismatch: expected=491 bytes, actual=483 bytes; updated tape written to ...". Volatile values (see that feature) are compared in their tokenized form, so values you declared volatile never count as drift while everything else does.
+
+    Both the recorder and `fail_if_changed` need a commit: a record VCR closed without commit still writes nothing.
+
+    ```python
+    import servirtium
+
+    # Nightly job: record against the live (or QA) service over the committed tape.
+    with servirtium.record("tapes/cases.md", live_base_url).fail_if_changed().port(0).start() as rec:
+        run_the_suite_against(rec.base_url)
+        rec.commit()   # raises VcrError("tape mismatch: ...") if the service changed
+    ```
+
+    C ABI: `aether_vcr_embed_stop_and_flush_fail_if_changed` and `aether_vcr_embed_stop_and_flush_or_check`.
+
+    Wrapping: `fail_if_changed` is wrapped by most bindings (Kotlin, Scala and Groovy inherit Java's `failIfChanged`; a search of the binding sources found no wrapper in Clojure, F#, Gleam or LFE). The `.actual` flush-or-check variant is wrapped by only a few bindings (Crystal's `flush_or_check`, Janet's `:or-check`); in the others it is in the native symbol table but has no public method.
+  docs:
+  - docs/volatile-values.md
+  - python/docs/features.md
+  tests:
+  - core_tests/test_vcr_drift_fail.ae
+  - core_tests/test_vcr_volatile_record.ae
+  - python/test/test_record.py
+  bindings: 'fail_if_changed: most bindings (not found in Clojure, F#, Gleam, LFE;
+    JVM and CLR languages ride on Java/.NET). flush-or-check (.actual sibling): only
+    Crystal and Janet expose it as a public call; elsewhere it is C ABI only'
+- slug: rewrite-upstream-base
+  title: Rewrite upstream base
+  group: Recording
+  summary: Keeps the client on the recorder when a service writes its own absolute
+    URLs, and writes {{baseUrl}} on the tape so playback works on any port.
+  body: |
+    Some services write their own address into responses: a TFS location service, SharePoint, a HATEOAS API, a paging `nextLink`, a `Location` header. While recording, the client then follows that URL straight to the real service, **around the recorder**; those calls are never recorded, and a redaction cannot help, because it only changes the tape, not what the client receives.
+
+    `rewrite_upstream_base` (record mode, **opt-in, off by default**) rewrites the traffic itself:
+
+    - in the response the client receives (headers and body), the upstream's base URL becomes the recorder's, so the client keeps talking to the recorder;
+    - in the request forwarded upstream, the recorder's base URL becomes the upstream's;
+    - on the tape, both become `{{baseUrl}}`, which playback fills from the live request, on any port.
+
+    The base that is rewritten is the upstream base the recording was opened with, without a trailing slash, path included. Open the recording with the base URL the service itself writes (same host name and port). An address outside that base, or a longer authority that merely starts with it, is left alone. A gzipped response is rewritten after decoding and sent to the client decoded; a binary body is never touched; a rewritten body's recorded `Content-Length` follows it.
+
+    ```python
+    import servirtium
+
+    with servirtium.record("tapes/items.md", upstream).rewrite_upstream_base().port(0).start() as rec:
+        page = fetch(rec.base_url + "/items")    # nextLink points at rec.base_url, not upstream
+        rec.commit()                              # the tape holds {{baseUrl}}/items?page=2
+
+    with servirtium.playback("tapes/items.md").port(0).start() as vcr:
+        page = fetch(vcr.base_url + "/items")    # nextLink points at THIS port
+    ```
+
+    I recorded an upstream whose body was `{"items": [], "nextLink": "<upstream>/items?page=2"}`: the client saw the recorder's address, the tape held `{{baseUrl}}/items?page=2`, and a playback on a different port returned that port's address.
+
+    C ABI: `aether_vcr_embed_set_rewrite_upstream_base(h, 1)` and `aether_vcr_embed_get_rewrite_upstream_base(h)`.
+  docs:
+  - docs/vcr-address.md
+  - release/notes/alpha.20.md
+  tests:
+  - core_tests/test_vcr_rewrite_upstream_base.ae
+  - core_tests/origin_fixture.ae
+  - core_tests/test_vcr_self_address.ae
+  - python/test/test_record.py
+  - dotnet/Servirtium.Vcr.Tests/RewriteUpstreamBaseTests.cs
+  bindings: every binding
+- slug: forward-host
+  title: Forward host
+  group: Recording
+  summary: Record mode can send the upstream the Host header the client sent, for
+    services that check URLs against the Host they were addressed on.
+  body: |
+    By default the recorder talks to the upstream under the upstream's own authority, which is what a name-based virtual host wants. A few services behave differently: Azurite, for example, accepts a copy source only when its host matches the `Host` the request was sent to. For those, `forward_host` makes the recorder send the upstream the **client's** `Host` header (the recorder's own `127.0.0.1:<port>`), like a Host-preserving reverse proxy.
+
+    **Behaviour.**
+
+    - Record mode only; **opt-in, off by default**.
+    - The recorded request headers hold what the client sent, as always; this changes only what the upstream sees.
+    - `Expect` is never forwarded regardless: the recorder holds the whole body, so there is no use for `100-continue`.
+
+    **Bindings: .NET only so far.** TODO.md lists the toggle as not yet wrapped by the other bindings; they need a `forward_host()` on the record builder, the same shape as `match_multiple()`. Until then another language can only reach it through the C ABI.
+
+    ```csharp
+    using Servirtium.Vcr;
+
+    using VcrServer rec = Vcr.Record(tapePath, "http://127.0.0.1:10000")
+        .Port(0)
+        .ForwardHost()          // the upstream now sees Host: 127.0.0.1:<recorder port>
+        .Start();
+    // ... drive the SDK under test at rec.BaseUrl ...
+    rec.Commit();
+    ```
+
+    I checked the behaviour at the C ABI against the release macOS arm64 library, with a local upstream that records the `Host` it receives: with `set_forward_host(h, 1)` the upstream saw the recorder's host and port, not its own. The .NET snippet mirrors `ForwardHostTests` and was not run here (no .NET SDK on this machine).
+
+    C ABI: `aether_vcr_embed_set_forward_host(h, on)`.
+  docs:
+  - TODO.md
+  - AGENTS.md
+  tests:
+  - core_tests/test_vcr_forward_host_and_expect.ae
+  - dotnet/Servirtium.Vcr.Tests/ForwardHostTests.cs
+  bindings: ".NET only (RecordBuilder.ForwardHost). Every other binding: C ABI only
+    until a forward_host() toggle is added (TODO.md)"
+- slug: upstream-ca-file
+  title: Upstream CA and TLS
+  group: Recording
+  summary: Verify an https upstream against your own CA file while recording, and
+    serve the VCR itself over https (TLS 1.3) from a PEM certificate and key.
+  body: |
+    Two separate TLS needs, both opt-in.
+
+    **Recording against an https upstream with its own CA.** Some services generate a private CA (Elasticsearch 8 does). `upstream_cafile(path)` makes the recorder verify the upstream's certificate against that PEM file instead of the system trust store. Verification and hostname checks stay **on**; this is connection-level only and nothing about it reaches the tape. An empty path is an error. Record mode only.
+
+    **Serving https from the VCR.** Some client libraries refuse plain `http://` to anything that is not trusted. `tls(cert_path, key_path)` makes the VCR serve `https://` from PEM files; `tls_from_pem(cert_pem, key_pem)` takes the PEM text in memory so no private key touches disk. The server is pure Aether TLS 1.3 with no OpenSSL dependency, so it works on every release platform. It accepts ECDSA P-256/P-384/P-521, Ed25519 and RSA 2048-16384 keys; an unusable or mismatched pair is refused at set time. `base_url` then starts with `https://` and `last_tls_protocol` reports `TLSv1.3`.
+
+    Servirtium records HTTP messages, not connections, so TLS never appears on the tape: playback serves its own certificate, which your test trusts.
+
+    ```python
+    import servirtium
+
+    # Record from an upstream with a private CA (Python spells it upstream_cafile).
+    with servirtium.record("tapes/es.md", "https://localhost:9200") \
+            .upstream_cafile("certs/http_ca.crt").port(0).start() as rec:
+        search(rec.base_url)
+        rec.commit()
+
+    # Serve the tape over https; trust your own certificate in the client.
+    with servirtium.playback("tapes/es.md").tls("certs/server.pem", "certs/server.key") \
+            .port(0).start() as vcr:
+        assert vcr.base_url.startswith("https://")
+        assert vcr.last_tls_protocol == "TLSv1.3"
+    ```
+
+    I ran the listener half on the release macOS arm64 library with a self-signed ECDSA P-256 certificate (both `tls` and `tls_from_pem` answered over TLSv1.3). The `upstream_cafile` call is checked by `core_tests/tls_probe.ae` and not run from Python here.
+
+    C ABI: `aether_vcr_embed_set_upstream_cafile`, `aether_vcr_embed_set_tls`, `aether_vcr_embed_set_tls_pem`, `aether_vcr_embed_last_tls_protocol`.
+  docs:
+  - AGENTS.md
+  - python/docs/usage.md
+  tests:
+  - core_tests/tls_probe.ae
+  - dotnet/Servirtium.Vcr.Tests/TlsTests.cs
+  - python/test/test_playback.py
+  bindings: 'upstream_cafile: wrapped by most bindings (Python, .NET, Rust, Go, Dart,
+    Nim, Zig, Elixir, Erlang, Gleam, LFE, Clojure and others; check the binding''s
+    features.md). tls / tls_from_pem: Dart, .NET, Elixir, Erlang, Go, Haskell, Janet,
+    Java, JavaScript, Lua, Nim, Pharo, PHP, Python, Ruby, Rust, Zig'
+- slug: license-notice
+  title: License notice
+  group: Recording
+  summary: Put the licence or terms of the recorded service at the top of every tape,
+    so anyone reading or replaying it sees them.
+  body: |
+    A tape holds a real service's responses. If that service has terms (a "no reverse engineering" clause, a data licence), the tape should carry them. `add_license_notice(text)` writes your text under a `## LICENSE NOTICE` heading at the top of every tape the recording produces, before `## Interaction 0`.
+
+    **Behaviour.**
+
+    - **Opt-in**, record mode. Servirtium writes the text exactly as given: you supply any line breaks.
+    - Calling it more than once adds paragraphs, in call order.
+    - Playback ignores the section (tapes are parsed from the first `## Interaction ` heading), which is why no line of the notice may start with `## Interaction ` or `## [Recording rules]`. The call is refused with an error if one does. Empty text is also refused.
+    - It sits before any `## Volatile values` block.
+
+    ```python
+    import servirtium
+
+    with servirtium.record("tapes/example.md", upstream) \
+            .add_license_notice("Recorded from the Example API.\nTerms: https://example.com/terms") \
+            .port(0).start() as rec:
+        call_the_service(rec.base_url)
+        rec.commit()
+    ```
+
+    The first lines of the resulting tape (verified on the release macOS arm64 library):
+
+    ```markdown
+    ## LICENSE NOTICE
+
+    Recorded from the Example API.
+    Terms: https://example.com/terms
+
+    ## Interaction 0: GET /items2
+    ```
+
+    A notice containing a line `## Interaction 9: x` is refused when the recorder is started: "add_license_notice: a line may not start with '## Interaction ' or '## [Recording rules]' (playback reads those as tape structure)".
+
+    C ABI: `aether_vcr_embed_add_license_notice(h, text)`.
+  docs:
+  - AGENTS.md
+  tests:
+  - core_tests/test_vcr_license_notice.ae
+  - python/test/test_record.py
+  bindings: every binding
+- slug: commit-discard
+  title: Commit and discard
+  group: Recording
+  summary: A recording becomes a tape only when you commit it; closing a record VCR
+    without commit or discard writes nothing and raises.
+  body: |
+    A recording is only as trustworthy as the test that produced it. A test that fails half-way, or forgets to finish, must never leave behind a tape that later replays as the truth. So in record mode the tape is written by exactly one thing: an explicit **commit**. The alternative is **discard**, which stops the server and drops the in-memory recording.
+
+    **Behaviour.**
+
+    - `commit()` stops the server and writes the tape (or, with `fail_if_changed`, writes it and raises if it differs; see drift detection).
+    - `discard()` stops the server and writes nothing. Calling `close()` afterwards is quiet.
+    - Closing, disposing or dropping a record VCR that was neither committed nor discarded writes **no tape and raises** (Python `VcrError`, .NET and Java `VcrException`, a returned error in Go, ...) with: "record VCR closed without commit or discard, so no tape was written".
+    - The scoped forms (`with` in Python, `using` in C#, the block forms in Ruby and Crystal, ...) discard the recording when the block raises, so the original failure is not hidden.
+    - Playback is unaffected: closing a playback VCR just stops it.
+
+    Some bindings spell commit differently (`flush-tape` in Janet, `sv_close_and_flush` in C, `flush()` in C++).
+
+    ```python
+    import servirtium
+
+    with servirtium.record("tapes/greeting.md", "http://127.0.0.1:8000").port(0).start() as rec:
+        call_the_service(rec.base_url)      # your client, pointed at the recorder
+        rec.commit()                        # the tape is written here and only here
+
+    # A failing block discards; an uncommitted block raises VcrError:
+    #   record VCR closed without commit or discard, so no tape was written
+    with servirtium.record("tapes/other.md", upstream).port(0).start() as rec:
+        call_the_service(rec.base_url)
+        rec.discard()                       # explicit: nothing written, no error
+    ```
+
+    C ABI: `aether_vcr_embed_stop_and_flush`, `aether_vcr_embed_discard`, `aether_vcr_embed_close` (returns "" or the message).
+  docs:
+  - release/notes/alpha.20.md
+  - python/docs/usage.md
+  tests:
+  - core_tests/test_vcr_close_requires_commit.ae
+  - python/test/test_record.py
+  - dotnet/Servirtium.Vcr.Tests/RecordTests.cs
+  bindings: 'every binding (spelling differs: commit/Commit, flush-tape in Janet,
+    sv_close_and_flush in C, flush() in C++)'
+- slug: matching-and-outcomes
+  title: Matching and outcomes
+  group: Playback and matching
+  summary: Strict method and path matching after RFC 3986 normalization, request headers
+    and body compared when the tape records them, opt-in semantic and strict modes,
+    and a numbered outcome for every request.
+  body: |
+    Playback is a real HTTP server that answers each request from the tape. What it checks, and what it
+    reports when a request does not fit, is the same in every binding because it is all in the core.
+
+    **What is compared**
+
+    - **Method and path, always, strictly.** The path and query are compared after RFC 3986 normalization:
+      hex escapes are upper-cased, escapes of unreserved characters are decoded, and `%20` equals `+` in the
+      query only. So a tape holding `{{uuid-2}}` matches a client's `%7B%7Buuid-2%7D%7D`. A reserved delimiter
+      that is escaped (`%2F`, `%26`, `%25`) stays different from the bare character.
+    - **Request headers, when the tape's request-headers block is not empty.** Names are case-insensitive,
+      values are exact. `Host`, the hop-by-hop headers and `Accept-Encoding` are never compared.
+    - **Request body, when the tape's body is not empty.** Byte-exact by default; `pretty_json` and
+      `pretty_xml` on the playback builder opt in to semantic comparison (key order and whitespace ignored,
+      a non-JSON body still byte-exact).
+    - **Strict headers (opt-in).** `strict_headers` also fails a live header the tape never recorded, which is
+      how a tape with an empty headers block stops accepting any client. Use `remove_header` or a header preset
+      for the headers your HTTP client adds on its own.
+
+    **Outcomes.** A mismatch answers `599` with a short message and sets `last_kind`, `last_index` and
+    `last_error`: `Ok=0, PathOrMethodDiff=1, HeaderMissing=2, HeaderValueDiff=3, HeaderUnexpected=4,
+    TapeExhausted=5, BodyDiff=6, RecordError=7`. A test asserts `Ok` after the call it cares about.
+    Ordered playback consumes one interaction per request.
+
+    ```python
+    import servirtium
+    from servirtium import Outcome
+
+    with servirtium.playback("tapes/ab.md").port(0).start() as vcr:   # tape: GET /a, then GET /b
+        status = call(vcr.base_url + "/b")      # your client; the tape expects /a first
+        assert status == 599
+        assert vcr.last_kind is Outcome.PATH_OR_METHOD_DIFF and vcr.last_index == 0
+        print(vcr.last_error)                   # a report: "first difference: path ... - /a  + /b"
+    ```
+
+    Verified output of that scenario: `tape mismatch at interaction 0: expected GET /a, got GET /b`.
+
+    C ABI: `aether_vcr_embed_last_kind`, `_last_index`, `_last_error`, `_set_strict_headers`, `_set_pretty_json`.
+  docs:
+  - docs/replay-diagnostics.md
+  - README.md
+  tests:
+  - core_tests/test_vcr_strict_match.ae
+  - core_tests/test_vcr_strict_match_body.ae
+  - core_tests/test_vcr_strict_ignore_headers.ae
+  - core_tests/test_vcr_path_encoding.ae
+  - core_tests/test_vcr_header_name_case.ae
+  - core_tests/test_vcr_json_body_match.ae
+  - core_tests/test_vcr_xml_body_match.ae
+  bindings: every binding
+- slug: match-multiple-and-match-header
+  title: Match-multiple and match-header
+  group: Playback and matching
+  summary: Opt-in reusable, order-independent playback, and matching on one named
+    request header instead of the whole header block.
+  body: |
+    Two opt-in matchers for tests whose requests do not arrive in tape order, or whose clients send headers
+    that never match a recording.
+
+    **`match_multiple`.** Default playback is strictly ordered and consuming: the next request must be the
+    next interaction, and each is used once. With `match_multiple` the VCR searches all interactions (only
+    those in the playback range, if one is set) for one that fits and replays it **without consuming it**.
+    Polling, retries, a client that fires its lookups in any order, and the same request twice all work. The
+    CLI's `servirtium serve` turns it on by default for the same reason. `assert_all_consumed` still works: it
+    fails while any interaction has never been matched, and passes once each has been used at least once
+    (verified: after `/a` alone it named `[1] GET /b`; after `/b` too it passed).
+
+    A miss is not reported against interaction 0. The core ranks the candidates (same method and path first,
+    then the most similar body, ties to the lowest index) and the mismatch report is about the closest one
+    (see "Replay diagnostics").
+
+    **`match_header(name)`.** Require that request header's live value to equal the recorded one, and nothing
+    else from the header block. Registering one suppresses the automatic whole-block header match unless
+    `strict_headers` is on, so it is surgical: a recording that carries `Accept`, `User-Agent` and
+    `X-Api-Version: 2` replays for any client that sends `X-Api-Version: 2`. It can be called more than once.
+
+    ```python
+    import servirtium
+
+    # tape: GET /data with recorded headers Accept, User-Agent, X-Api-Version: 2
+    with servirtium.playback("tapes/by_header.md").match_header("X-Api-Version").port(0).start() as vcr:
+        ok = call(vcr.base_url + "/data", headers={"X-Api-Version": "2"})   # 200
+        no = call(vcr.base_url + "/data", headers={"X-Api-Version": "9"})   # 599, HeaderValueDiff
+    ```
+
+    Verified: with `match_multiple`, `/b` then `/a` then `/a` again all answered 200 and an unknown path
+    answered 599; with `match_header`, version 2 answered 200 and version 9 `HeaderValueDiff`.
+
+    C ABI: `aether_vcr_embed_set_match_multiple`, `_match_header`, `_clear_match_headers`.
+  docs:
+  - docs/replay-diagnostics.md
+  tests:
+  - core_tests/test_vcr_match_multiple.ae
+  - core_tests/test_vcr_by_header.ae
+  - core_tests/test_vcr_closest_candidate.ae
+  bindings: Wrapped by nearly every binding (python, rust, java and the JVM four,
+    ruby, javascript, php, dart, go, nim, zig, lua, haskell, elixir, erlang, dotnet,
+    c, cpp, crystal, d, julia, janet, swift, pharo). In the Gleam and LFE sources
+    I found playback_range wrapped but no match_multiple or match_header wrapper (the
+    shared NIF exports both); check the binding README before relying on it there.
+- slug: playback-range
+  title: Playback range
+  group: Playback and matching
+  summary: Replay only interactions from..to of a tape, so one recorded journey serves
+    many tests.
+  body: |
+    A browser or integration test records a whole journey once: log in, add to cart, open the card page, pay
+    with the wrong CVC. Another test wants only "purchase rejected" and does not want to repeat the login.
+    `playback_range(from, to)` replays only that slice of the same tape.
+
+    - **Numbers are the tape's `## Interaction N` headings**, 0-based and inclusive; `to` below 0 means
+      through the last one. They shift when the tape is re-recorded.
+    - Set it after opening and before starting. A bad range (negative `from`, `to` before `from`, either
+      past the last interaction) is refused, and checked again at start, which fails with the reason.
+    - Ordered playback starts its cursor at `from`; `reset_cursor` returns to `from`; a request after `to`
+      is `TapeExhausted`, "past the end of the playback range".
+    - **Interactions outside the range are never served.** A request that would have matched one fails as
+      `PathOrMethodDiff` and says so: "interaction 0 is outside the playback range 2-3 (expected interaction
+      2: GET /step2)". No new outcome kind.
+    - `match_multiple` searches only the range, and `assert_all_consumed` counts only the range.
+      `tape_length` stays the whole tape.
+    - **Playback only.** A record handle refuses a range, so a test that thinks it replays a slice can never
+      overwrite the journey's tape with one.
+    - **Values and credentials from skipped interactions.** A cart id first seen in skipped interactions is on
+      the tape as a normalized token such as `{{uuid-1}}`, and the test, which never received it, sends it
+      literally. With the credential preset (`redact_credentials`) on the playback handle, `Cookie` matches
+      on presence, so a session cookie the test set itself passes.
+
+    ```python
+    import servirtium
+
+    with servirtium.playback("tapes/journey.md").redact_credentials().playback_range(2, 3).port(0).start() as vcr:
+        call(vcr.base_url + "/step2")        # interaction 2: served
+        call(vcr.base_url + "/step3")        # interaction 3: served
+        vcr.assert_all_consumed()            # counts only 2..3
+    ```
+
+    Verified: with a five-interaction tape and range 2..3, `/step2` and `/step3` answered 200,
+    `/step0` answered 599 with the "outside the playback range 2-3" message, `/step4` was `TapeExhausted`,
+    and a range starting at 9 was refused with "from (9) is past the tape's last interaction (4)".
+
+    C ABI: `aether_vcr_embed_set_playback_range` (returns an error string the caller frees),
+    `_clear_playback_range`, `_get_playback_range_from`, `_get_playback_range_to`.
+  docs:
+  - README.md
+  tests:
+  - core_tests/test_vcr_playback_range.ae
+  bindings: Wrapped by every binding I checked (python, dotnet, javascript, c, cpp,
+    crystal, d, julia, janet, swift, erlang, elixir, haskell, pharo, gleam, lfe, fsharp).
+    The repository's pre-recorded recorder exposes it as replaying_part(suite, case,
+    url, from, to).
+- slug: replay-diagnostics
+  title: Replay diagnostics
+  group: Playback and matching
+  summary: A side channel on the VCR handle that carries rich mismatch reports (closest
+    candidate, first real difference, request-header section) to the test, independently
+    of the HTTP client.
+  body: |
+    The HTTP response to a mismatched request stays short (`599` and one line), because the system under test
+    may swallow it. The detail travels through the handle: the test reads it, or asserts on it, after
+    exercising the system.
+
+    **What a report holds.** The outcome name, the test coordinates, the tape and interaction index, the request,
+    and:
+
+    - `closest:` under `match_multiple`, the interaction the request was most plausibly meant for (same
+      method and path first, then the body that shares the longest prefix and suffix, ties to the lowest
+      index), with its tier and whether it was already used;
+    - `first difference:` where the request and that interaction first really differ: `method`, `path`, a
+      `header NAME`, or the request body, with an XML element path or JSON pointer and the byte offset, one
+      masked line each side. Volatile-value tokens never count as differences;
+    - `request headers: match`, or the first differing header, both sides in matching's canonical form;
+    - for a `TapeExhausted` request, the request whole (headers and body) ready to be written into a tape.
+
+    Credentials are masked (Authorization, Cookie, X-Api-Key, `password`/`token` query parameters and JSON
+    keys, and values you `unredact`) before anything is cut out or printed.
+
+    **Retrieval and test boundaries.** Events are retained across successful requests. `last_error` /
+    `read_last_error(False)` read the latest; `diagnostics_json()` returns all as JSON (`closestCandidate`,
+    `candidates`, `headersMatch`, `firstDifference`, ...); `assert_no_mismatches()` fails with all of them.
+    `test_context(name, file, line)` marks a new test: it reports the previous test's unretrieved failures
+    to stderr under the previous coordinates, clears them, and installs the new ones. Closing a handle
+    reports any left over (`Servirtium: UNRETRIEVED REPLAY MISMATCH`), once.
+
+    ```python
+    import servirtium
+
+    with servirtium.playback("tapes/users.md").port(0).start() as vcr:
+        vcr.test_context("UsersTest.rejects_admin", "tests/test_users.py", 42)
+        exercise_system_under_test(vcr.base_url)
+        vcr.assert_no_mismatches()      # raises VcrError with the report
+    ```
+
+    Verified output (a request for `/zzz` against a tape expecting `GET /a`) began
+    `Servirtium replay mismatch #1 (PathOrMethodDiff)`, then `test: UsersTest.rejects_admin`,
+    `source: tests/test_users.py:42`, `tape: ...`, `interaction: 0`, `first difference: path, normalised byte 1`.
+
+    C ABI: `aether_vcr_embed_last_error_ex`, `_diagnostics_json`, `_assert_no_mismatches`, `_test_context`.
+  docs:
+  - docs/replay-diagnostics.md
+  tests:
+  - core_tests/.diagnostics.ae
+  - core_tests/diagnostics_tests.ae
+  - core_tests/test_vcr_closest_candidate.ae
+  - core_tests/test_vcr_closest_unit.ae
+  - core_tests/test_vcr_request_headers_report.ae
+  - core_tests/test_vcr_report_readability.ae
+  bindings: every binding (names per binding are in the table in docs/replay-diagnostics.md;
+    property-style bindings keep their consuming property and add a boolean read method)
+- slug: vcr-address-placeholders
+  title: The VCR's own address on a tape
+  group: Playback and matching
+  summary: "{{baseUrl}}, {{request.host}} and {{request.scheme}} stand for the VCR's
+    address in both the recorded request and the recorded response, so a tape replays
+    on any port."
+  body: |
+    A test hands its client the VCR's base URL, and with port 0 the port is different every run. A tape that
+    holds the address literally replays only on that port. Three placeholders stand for it:
+
+    | Placeholder | Filled with |
+    |---|---|
+    | `{{baseUrl}}` | scheme, `://` and the live request's `Host` (`http://127.0.0.1:54213`) |
+    | `{{request.host}}` | the live request's `Host` |
+    | `{{request.scheme}}` | `https` when the VCR serves TLS, else `http` |
+
+    They are filled **on both sides**, from the request being answered:
+
+    - **In a recorded response** (headers and body): a paging `nextLink`, a `Location` or a HATEOAS link points
+      back at the VCR.
+    - **In a recorded request** (path, headers, body) when playback compares it: a SOAP `<a:To>`, a callback
+      URL or a `Referer` that carries the VCR's address matches on any port. It is not a wildcard: another
+      address is still a mismatch, and the report shows the expectation filled in, so only the real
+      difference shows.
+
+    So the test needs to know nothing about the address before the VCR starts: start it on port 0, read
+    `base_url`, give that to the client. `{{request.header.NAME}}` (the live request's `NAME` header) is
+    filled in responses only.
+
+    A hand-written tape can use the placeholders directly. A **recording** gets them from
+    `rewrite_upstream_base` (record mode, opt-in, described under "Rewrite upstream base"): the upstream's own
+    base URL in responses becomes the recorder's for the client, and both become `{{baseUrl}}` on the tape.
+
+    ```python
+    import servirtium
+
+    # tape: POST /callback?to={{baseUrl}}/hook, body to={{baseUrl}}/hook,
+    #       response body "ok at {{baseUrl}}/next on {{request.host}} via {{request.scheme}}"
+    with servirtium.playback("tapes/callback.md").port(0).start() as vcr:
+        b = vcr.base_url
+        r = post(f"{b}/callback?to={b}/hook", body=f"to={b}/hook")
+        # -> "ok at http://127.0.0.1:57732/next on 127.0.0.1:57732 via http"
+        post(f"{b}/callback?to=http://other.example/hook", body="to=http://other.example/hook")  # 599
+    ```
+
+    Verified on a hand-written tape: the first call matched and was filled in; the call carrying another
+    address was `PathOrMethodDiff`.
+  docs:
+  - docs/vcr-address.md
+  tests:
+  - core_tests/test_vcr_self_address.ae
+  - core_tests/test_vcr_request_header_token.ae
+  - core_tests/test_vcr_rewrite_upstream_base.ae
+  - core_tests/origin_fixture.ae
+  bindings: every binding (the placeholders are core; rewrite_upstream_base is on
+    every binding's record builder, see docs/vcr-address.md for the per-binding call)
+- slug: static-content-and-untaped
+  title: Static content and untaped paths
+  group: Playback and matching
+  summary: Serve a path prefix from disk beside the tape, and answer incidental paths
+    such as /favicon.ico with a bare 404 that never touches the tape.
+  body: |
+    Browser-driven suites (Selenium, Cypress, Playwright) fetch CSS, scripts, images and a favicon that have
+    no business on a tape. Two small switches keep them off it.
+
+    **`static_content(mount, dir)`.** Requests under `mount` are served from `dir` on disk, same origin as the
+    tape's API paths, so there is no CORS noise and nothing from the assets is recorded or consumed. A path
+    escaping the directory (`/assets/../etc/passwd`) is refused with 403, a missing file is 404, and a text
+    file gets its content type. Configure it before starting the VCR.
+
+    **`untaped(path)`.** An exact path (the query is stripped first, so `/favicon.ico` also covers
+    `/favicon.ico?v=2`) gets a bare 404 from the VCR without touching the tape. On playback it does not
+    advance the cursor or raise `TapeExhausted`; on record it is not forwarded upstream and not written.
+    It is opt-in: any other unknown path after the tape is used up is still a real `TapeExhausted`.
+
+    ```python
+    import servirtium
+
+    with (servirtium.playback("tapes/app.md")
+          .static_content("/assets", "build/static")
+          .untaped("/favicon.ico")
+          .port(0).start()) as vcr:
+        get(vcr.base_url + "/assets/app.js")     # from disk
+        get(vcr.base_url + "/favicon.ico")       # 404, tape untouched
+        get(vcr.base_url + "/api/users")         # from the tape
+    ```
+
+    Verified (Python, release library): `/assets/app.js` answered 200 with the file's bytes, a missing asset 404,
+    `/favicon.ico` 404, and the tape's `/a` still answered from interaction 0 afterwards. In record mode with
+    `untaped("/favicon.ico")` the favicon request answered 404 and the committed tape held only the real
+    interactions.
+
+    At record time you will usually also strip volatile browser request headers with `remove_header`, or a
+    strict playback rejects a real browser's headers.
+
+    C ABI: `aether_vcr_embed_static_content`, `_untaped`, `_clear_static_content`, `_clear_untaped`.
+  docs:
+  - python/docs/usage.md
+  tests:
+  - core_tests/test_vcr_static_content.ae
+  - core_tests/test_vcr_static_content_cache.ae
+  - core_tests/test_vcr_untaped.ae
+  bindings: every binding
+- slug: notes
+  title: Notes on a tape
+  group: Playback and matching
+  summary: 'Attach a titled note to the next recorded interaction; it is written as
+    a ## [Note] block that playback ignores.'
+  body: |
+    A note is documentation for the human reading the tape: why this interaction exists, which scenario step
+    it belongs to, what a value means. It is **record-side only**. `note(title, body)` stages a note and the
+    next recorded interaction picks it up; the tape then carries a `## [Note] <title>:` block between the
+    interaction heading and its `###` sections. An interaction recorded with no staged note has none, and
+    calling `note` twice in a row replaces the staged one (the last wins). Playback walks the `###` sections
+    only, so a note is ignored and never matched.
+
+    Notes are also what the Bruno converter uses to say where each interaction came from and which headers
+    the collection would send (see "Bruno convert and import"), and the Azure harness uses one to carry the
+    test's start time.
+
+    A related but separate switch, `add_license_notice(text)`, writes plain text once at the top of the tape
+    under `## LICENSE NOTICE`, before `## Interaction 0`, for the recorded service's licence terms. No line
+    of it may start `## Interaction ` or `## [Recording rules]`.
+
+    ```python
+    import servirtium
+
+    rb = (servirtium.record("tapes/login.md", "https://api.example.test")
+          .note("Login", "Signs in as the demo user.\n")
+          .add_license_notice("Recorded against Example Service 1.0.\nSee its licence, section 3."))
+    with rb.port(0).start() as vcr:
+        client_login(vcr.base_url)                  # interaction 0 carries the "Login" note
+        vcr.note("Second", "set on the running server")
+        client_next(vcr.base_url)                   # interaction 1 carries "Second"
+        vcr.commit()                                # a recording is written only on commit
+    ```
+
+    The tape that this produced (verified, against a local upstream) began `## LICENSE NOTICE`, the two lines,
+    then `## Interaction 0: GET /ok`, `## [Note] Login:`, the note text, and the `### Request headers ...`
+    section; interaction 1 had `## [Note] Second:`.
+
+    C ABI: `aether_vcr_embed_note`, `_add_license_notice`.
+  docs:
+  - python/docs/features.md
+  - README.md
+  tests:
+  - core_tests/test_vcr_notes.ae
+  - core_tests/test_vcr_license_notice.ae
+  bindings: every binding
+- slug: ntlm-and-negotiate
+  title: NTLM and Negotiate
+  group: Playback and matching
+  summary: Record mode pairs each client connection with its own upstream connection,
+    so NTLM and Negotiate handshakes record and replay; the pre-recorded/ntlm suite
+    shows how.
+  body: |
+    NTLM authenticates a **connection**, not a request: a Type 1 message, a `401` carrying the Type 2
+    challenge, then a Type 3 that must arrive on the same connection. A recorder that pools upstream
+    connections by origin breaks that, so Servirtium's does not.
+
+    **Record mode.** The recorder pairs each client connection with an upstream connection of its own (a
+    pinned client pool per client connection, closed when the client's connection closes). This needs
+    **Aether 0.939.0 or newer** in the engine, which every release from alpha.20 is built with. Through the
+    recorder an NTLM handshake behaves as it does directly: one client's three legs reach the server on one
+    connection, two clients interleaving handshakes each keep their own, a Type 3 on a new connection is
+    refused as the server refuses it, and an authenticated upstream connection stays its client's.
+
+    **What a tape holds.** Every leg as its own interaction: the anonymous `401` (when the client sends one),
+    the Type 1 and its `401` with the Type 2, the Type 3 and the `200`. The first `401`'s `Negotiate` and
+    `NTLM` challenges keep the server's order.
+
+    **Playback.** A client's Type 3 differs on every run (its nonce, timestamp and NTLMv2 proof), so strict
+    matching would stop at it. The credential preset is the rule: `redact_credentials()` on the record and the
+    playback builder writes `Authorization: NTLM AUTHORIZATION_N` and matches on presence. No core change was
+    needed. The cost: playback cannot check an NTLM response, so a wrong password replays as `200`, and a tape
+    replays only for a client that takes the same legs (a client that pre-sends its Type 1 needs a tape with no
+    anonymous leg). Calls after the handshake carry no credential at all, so a calls-only test replays the
+    handshake tape's later interactions with `playback_range`.
+
+    ```python
+    import servirtium
+
+    def player(tape):
+        return (servirtium.playback(str(tape))
+                .remove_header(servirtium.Field.REQUEST_HEADERS, "User-Agent")
+                .remove_header(servirtium.Field.REQUEST_HEADERS, "Accept-Encoding")
+                .redact_credentials())
+
+    # the calls after the handshake (interactions 3 to 5), no login needed
+    with player("tapes/calls_on_an_authenticated_connection_requests_ntlm.md").playback_range(3).start() as vcr:
+        ...   # requests.Session().post(vcr.base_url + "/echo") ...
+    ```
+
+    That `player()` is the repository's own (`pre-recorded/ntlm/conftest.py`). The server there is our own
+    pyspnego acceptor with a synthetic user, not IIS: record against your own service before trusting details.
+    Negotiate's final `mechListMIC` is keyed by the recording's session key, so a client that checks it fails
+    on replay; a playback `substitute` that removes that header line cures it.
+  docs:
+  - pre-recorded/ntlm/README.md
+  - pre-recorded/README.md
+  tests:
+  - pre-recorded/ntlm/test_ntlm.py
+  bindings: Core behaviour, so every binding gets the per-connection pairing in record
+    mode; the suite itself drives the Python binding (4 Python clients). Replaying
+    from another language needs the credential preset and the same legs, see the README's
+    'Replaying from another language'. Not run by me (needs requests-ntlm, httpx and
+    pyspnego); the README reports 39 passed and 1 xfailed on macOS arm64 and on cachyos,
+    Aether 0.941.0, 2026-11-24.
+- slug: dotnet-framework-48
+  title: ".NET Framework 4.8"
+  group: Playback and matching
+  summary: 'The Servirtium.Vcr package targets net48 as well as net8.0: the Windows
+    engine is copied for you, there is no 32-bit engine, and CreateClientHandler is
+    not available.'
+  body: |
+    The release's `Servirtium.Vcr.@VER@.nupkg` carries `lib/net48/` beside `lib/net8.0/`, with the native
+    engines inside under `runtimes/<rid>/native/` (Windows x64 and ARM64 are the ones .NET Framework uses). The
+    feature came out of a .NET Framework 4.8 user's field report, and the package now covers the project shapes
+    such a user has.
+
+    **The engine reaches your output directory** in every usual shape:
+
+    - SDK-style project with `PackageReference` and a `RuntimeIdentifier` (`win-x64`, `win-arm64`): NuGet copies it.
+    - Without one, the package's `build/net48/Servirtium.Vcr.targets` copies it: with `PlatformTarget` `x64` or
+      `ARM64` that engine; for AnyCPU (a test project, a library) both, under `runtimes\win-x64\native\` and
+      `runtimes\win-arm64\native\`, and the binding loads the one for the process's architecture.
+    - A project that references a project that has the `PackageReference`: `buildTransitive/net48/` does the same.
+    - Classic `packages.config`: NuGet's install adds an import of the same targets file.
+
+    **No 32-bit engine.** A build that makes a 32-bit process (`PlatformTarget` x86, `RuntimeIdentifier`
+    `win-x86`, or an AnyCPU exe with `Prefer32Bit`, the classic console template's default) fails with
+    **`SVCR001`** and says what to set. A RID that is neither x64 nor ARM64 fails with `SVCR002`. Set
+    `<ServirtiumVcrCopyNative>false</ServirtiumVcrCopyNative>` to turn the copy and the check off, for example
+    when `SERVIRTIUM_VCR_LIB` points at the engine.
+
+    **`CreateClientHandler` is not available** on .NET Framework (it is built on `SocketsHttpHandler`); point the
+    client at `BaseUrl` directly.
+
+    ```xml
+    <!-- your .csproj, the classic console template needs the two overrides -->
+    <PropertyGroup>
+      <TargetFramework>net48</TargetFramework>
+      <PlatformTarget>x64</PlatformTarget>
+      <Prefer32Bit>false</Prefer32Bit>
+    </PropertyGroup>
+    <ItemGroup>
+      <PackageReference Include="Servirtium.Vcr" Version="@VER@" />
+    </ItemGroup>
+    ```
+
+    Two practical points for HttpWebRequest and HttpClient on .NET Framework: HttpWebRequest sends
+    `Expect: 100-continue` on every POST, which the `remove_transport_headers` preset leaves off the tape, and a
+    `Cookie` header set by hand needs `UseCookies = false` or the handler replaces it.
+
+    `dotnet/net48/check.sh` builds all of these project shapes from a packed `.nupkg` (on Linux), and runs them
+    on Windows. Not run by me (no .NET SDK on this Mac); this entry is read from `dotnet/README.md`, the targets
+    file and `check.sh`.
+  docs:
+  - dotnet/README.md
+  - dotnet/docs/building.md
+  - dotnet/Servirtium.Vcr/README.package.md
+  tests:
+  - dotnet/net48/check.sh
+  - dotnet/Servirtium.Vcr.Tests/PlaybackTests.cs
+  bindings: ".NET (and F#, which takes the same package). Windows x64 and ARM64 only."
+- slug: header-presets
+  title: Header presets and what a recording keeps
+  group: Secrets and redaction
+  summary: One-call opt-in rules for credentials, hop-by-hop headers, cloud tracing
+    headers and client noise; a recording otherwise keeps every header as sent.
+  body: |
+    **What a recording keeps.** Record mode writes headers as sent: every request header the client sent (`Host`, `User-Agent`, `Accept`, `Connection`, `Content-Length`, ...) and every response header the service sent. There is no built-in drop list. The one hard-coded exception comes from Servirtium 1: a gzipped body is stored decoded, without that response's `Content-Encoding` and `Content-Length`. Anything else stays out only because the test removed or redacted it. Header names are case-insensitive everywhere; values are not.
+
+    **Presets.** Most tests want the same few rules, so each preset is one call that registers ordinary rules. None is on by default, and the recording-rules footer lists each under its preset name.
+
+    | Preset | Does |
+    |---|---|
+    | `redact_credentials` | `Authorization` and `Proxy-Authorization` keep their scheme (`Bearer AUTHORIZATION_1`); each cookie value in `Cookie`/`Set-Cookie` becomes `COOKIE_N`; `X-Api-Key`, `X-Auth-Token` become `API_KEY_N`, `AUTH_TOKEN_N` |
+    | `redact_credential_header(name)` | one more header the same way (`X-Vault-Token: X_VAULT_TOKEN_1`) |
+    | `remove_cloud_headers(vendor)` | a CDN's or load balancer's tracing/cache-status headers; vendors `aws`, `azure`, `cloudflare`, `fastly`, `gcp`, anything else is an error |
+    | `remove_transport_headers` | `Host`, `Connection`, `Content-Length`, other hop-by-hop headers, the request's `Accept-Encoding`, and `Expect` (.NET Framework sends `Expect: 100-continue` on every POST) |
+    | `strict_ignore_common_headers` | the request's `User-Agent`, `Accept`, `Accept-Encoding`, `Connection`, from the recording and from matching |
+    | `ignore_volatile_headers` | `traceparent`, `tracestate`, `Request-Id`, `X-Request-Id`, `X-Correlation-Id`, `baggage` |
+
+    Credentials are numbered per distinct value, in order of appearance, so a cookie a service set and the one the client sent back are both `COOKIE_1`. A value of 8 characters or more is also replaced wherever else it appears (for example echoed in a body). Playback matches credential headers on **presence, not value**, so register the preset on the playback VCR too. `remove_header(field, name)` removes any single header.
+
+    ```python
+    import servirtium
+
+    with servirtium.record("tapes/me.md", upstream) \
+            .remove_transport_headers().remove_cloud_headers("aws") \
+            .redact_credentials().redact_credential_header("X-Vault-Token") \
+            .ignore_volatile_headers().port(0).start() as rec:
+        call_the_service(rec.base_url)   # sent Authorization: Bearer abc.def.ghi, a Cookie, X-Vault-Token
+        rec.commit()                      # tape: Authorization: Bearer AUTHORIZATION_1, Cookie: sid=COOKIE_1, ...
+    ```
+
+    I ran this against a local upstream: the tape held `Authorization: Bearer AUTHORIZATION_1`, `Cookie: sid=COOKIE_1`, `X-Vault-Token: X_VAULT_TOKEN_1`, `Set-Cookie: sid=COOKIE_1; Path=/`, and no `Host`, `Connection`, `X-Cache` or `traceparent`; playback with the same presets accepted completely different live credential values.
+
+    **Wrapping.** `redact_credentials`, `redact_credential_header`, `remove_cloud_headers` and `remove_transport_headers` are wrapped by every binding. `ignore_volatile_headers` and `remove_header` are wrapped by most (no wrapper found in Gleam and LFE for either, nor Clojure and F# for `ignore_volatile_headers`). `strict_ignore_common_headers` has a public method in C, C++, Crystal, D, Julia, Nim, Swift and Janet; Python, .NET, Java and several others have it only in the native symbol table, so use `remove_header` or `ignore_volatile_headers` there.
+
+    C ABI: `aether_vcr_embed_redact_credentials`, `_redact_credential_header`, `_remove_cloud_headers`, `_remove_transport_headers`, `_strict_ignore_common_headers`, `_ignore_volatile_headers`, `_remove_header`.
+  docs:
+  - AGENTS.md
+  - python/docs/usage.md
+  tests:
+  - core_tests/test_vcr_header_presets.ae
+  - core_tests/test_vcr_keeps_headers.ae
+  - core_tests/test_vcr_strict_ignore_headers.ae
+  - core_tests/test_vcr_header_name_case.ae
+  - python/test/test_record.py
+  - python/test/test_record_mutation.py
+  bindings: 'redact_credentials, redact_credential_header, remove_cloud_headers, remove_transport_headers:
+    every binding. ignore_volatile_headers, remove_header: most (not found in Gleam,
+    LFE; ignore_volatile_headers also not Clojure, F#). strict_ignore_common_headers:
+    public method only in C, C++, Crystal, D, Julia, Nim, Swift, Janet'
+- slug: structured-redaction
+  title: Structured redaction
+  group: Secrets and redaction
+  summary: Redact a named header, query parameter or JSON field when the tape is written,
+    or any text by pattern; unredact on playback; or collapse a pattern across the
+    whole tape.
+  body: |
+    Secrets should not reach a committed tape. Redaction rewrites the **tape only**: the upstream still receives the real credential and your client still gets the real response.
+
+    **Structured helpers** (no pattern to write; default replacement `[REDACTED]`):
+
+    - `redact_header(name)`: every header with that name, case-insensitively. Request scope by default; pass `field=` for response headers.
+    - `redact_query_param(name)`: every occurrence in the URL query, matched after percent-decoding. The replacement is percent-encoded, so `[REDACTED]` appears as `%5BREDACTED%5D` in the tape's request line.
+    - `redact_json_field(name)`: that key at every depth, case-sensitively. The whole value becomes a JSON string, even a number or object. Unrelated bytes keep their layout. A non-empty body that is not valid JSON **fails the commit** and writes nothing.
+
+    **Literal and whole-tape.** `redact(field, pattern, replacement)` replaces text in one field (`Path`, `RequestHeaders`, `RequestBody`, `ResponseHeaders`, `ResponseBody`). `redact_whole_tape(pattern, replacement)` rewrites every regex match, in every field, to one constant: good for values nothing correlates, such as a timestamp (values that must correlate are volatile values). Rules run in registration order at write time.
+
+    **Unredact.** Redacting a request expectation does not change matching: playback still compares live requests with the tape. `unredact(field, pattern, replacement)` on the playback VCR restores a known test value in the expectation, so the scrubbed tape still matches. Or the test can send the recorded replacement.
+
+    ```python
+    import servirtium
+    from servirtium import Field
+
+    with servirtium.record("tapes/login.md", upstream) \
+            .redact_header("Authorization").redact_query_param("password") \
+            .redact_json_field("secretKey").redact(Field.REQUEST_BODY, "hunter2", "PASSWORD") \
+            .port(0).start() as rec:
+        login(rec.base_url)
+        rec.commit()      # tape: Authorization: [REDACTED], ?password=%5BREDACTED%5D, "secretKey": "[REDACTED]"
+
+    with servirtium.playback("tapes/login.md") \
+            .unredact(Field.PATH, "%5BREDACTED%5D", "hunter2") \
+            .unredact(Field.REQUEST_HEADERS, "[REDACTED]", "Basic Ym9iOnB3").port(0).start() as vcr:
+        login(vcr.base_url)   # the real values still match the scrubbed tape
+    ```
+
+    I ran a POST with a password query parameter, a `secretKey` number, and an `Authorization` header: the tape held the replacements above, the upstream saw the originals, and playback matched both with the redacted values and via `unredact` with the real ones.
+
+    C ABI: `aether_vcr_embed_redact`, `_redact_header`, `_redact_query_param`, `_redact_json_field` (all take `(handle, field, name, replacement)`; query scope must be `Path`), `_unredact`, `_redact_whole_tape`, `_redact_whole_tape_described`.
+  docs:
+  - docs/redaction-helpers.md
+  - python/docs/usage.md
+  tests:
+  - core_tests/test_vcr_redaction_helpers.ae
+  - core_tests/test_vcr_redactions.ae
+  - core_tests/test_vcr_unredactions.ae
+  - core_tests/redaction_fixture.ae
+  - python/test/test_record.py
+  - python/test/test_record_mutation.py
+  - dotnet/Servirtium.Vcr.Tests/RedactionHelpersTests.cs
+  bindings: 'every binding for redact_header / redact_query_param / redact_json_field
+    / redact / unredact. redact_whole_tape: wrapped by most bindings (not found in
+    Clojure, F#, Gleam, LFE); the described form (redact_whole_tape_described) has
+    no wrapper that I found, it is core/C ABI and used by the pre-recorded recorder'
+- slug: named-secret-callbacks
+  title: Named secret callbacks
+  group: Secrets and redaction
+  summary: Your code decides which fields are secrets and names them at record time,
+    then supplies the real values at playback; the tape holds only names.
+  body: |
+    Pattern redaction needs you to know the secret's text. Named secret callbacks go the other way: the core finds the fields (query, form, header, JSON, XML, YAML, multipart text), and **your callback decides** whether each is a secret and what to call it. It never guesses that a URL "belongs to billing"; your code does.
+
+    **Recording.** A `secret_redactor` callback receives the decoded key and a request snapshot (`method`, `path`, `location`, `format`, `field_path`, `interaction`) and returns a token name, or nothing to leave the field alone. The tape then holds a marker such as `{{secret:ACCOUNTS_PASSWORD|1}}` (URL-encoded inside a query). Names are 1-128 ASCII letters, digits, dots, underscores, colons or dashes. Four services with four passwords on one port just need the callback to look at the path.
+
+    **Playback.** A `secret_resolver` callback receives only the token name and returns the real value, before the server starts listening. Named tokens **require** a resolver: they are never quietly served as credentials, and returning nothing for a token fails setup.
+
+    **Safety.**
+
+    - A callback exception, an invalid decision, or unfinished staging prevents the tape being written.
+    - Resolving changes playback's in-memory expectations only; a resolved playback can never be flushed as plaintext.
+    - Resolved values are masked in mismatch diagnostics.
+    - There are no callbacks into your language runtime from the native HTTP worker: the binding runs your callback between ordinary FFI calls (the seven `secret_*` ABI calls).
+
+    ```python
+    import servirtium
+
+    with servirtium.record("tapes/pay.md", upstream).secret_redactor(
+            lambda key, request: "ACCOUNTS_PASSWORD" if key == "password" else None
+    ).port(0).start() as rec:
+        pay(rec.base_url)            # ...?user=bob&password=hunter2
+        rec.commit()                 # tape: password=%7B%7Bsecret%3AACCOUNTS_PASSWORD%7C1%7D%7D
+
+    with servirtium.playback("tapes/pay.md") \
+            .secret_resolver({"ACCOUNTS_PASSWORD": "hunter2"}.get).port(0).start() as vcr:
+        pay(vcr.base_url)
+        vcr.assert_no_mismatches()
+    ```
+
+    I ran exactly this against a local upstream with the release macOS arm64 library: the tape held the named marker and no password, and the resolved replay matched.
+
+    C ABI: `aether_vcr_embed_secret_begin`, `_secret_next`, `_secret_get`, `_secret_interaction`, `_secret_apply`, `_secret_finish`, `_secret_abort`.
+  docs:
+  - docs/secrets.md
+  tests:
+  - core_tests/test_vcr_secret_fields.ae
+  - core_tests/test_vcr_secret_staging.ae
+  - core_tests/secret_fixture.ae
+  - python/test/test_secrets.py
+  - dotnet/Servirtium.Vcr.Tests/SecretCallbacksTests.cs
+  bindings: all bindings except Janet (docs/secrets.md lists the callback spelling
+    for 25 languages; Kotlin, Scala, Groovy inherit Java's)
+- slug: stable-order
+  title: Stable order
+  group: Values and bodies
+  summary: Opt-in sorting of JSON keys, chosen JSON arrays and response headers at
+    write time, so a service that varies its order still re-records byte-identically.
+  body: |
+    A service that answers in a different order every run (a Go map or Java set behind a JSON object, a header order that shifts, a list ordered by a random id) makes every re-record differ, so drift detection fails and the only cure was throwing content away. **Stable order** sorts what is written, leaving everything else byte-exact. Each rule is **off by default** and registered explicitly; all of them apply on the record side, and playback serves the tape as written.
+
+    | Rule | Writes |
+    |---|---|
+    | `sort_json_keys` | JSON response bodies' object keys sorted at every depth (order has no meaning in JSON, so this is safe) |
+    | `sort_json_array(path, by)` | the arrays `path` selects, sorted by member `by` (names, JSON pointers, or several comma-separated) |
+    | `sort_json_array_at(request_regex, path, by)` | the same, only for requests whose path (query included) matches the regex |
+    | `sort_response_headers` | response header lines by name, case-insensitive (a repeated header's lines keep their order) |
+    | `sort_header_value(name)` | that header's comma-separated items sorted (`Allow: DELETE, GET, POST`) |
+
+    **Arrays are per-array on purpose**: array order is often the meaning (a ranked result), so there is no global switch, and sorting **changes the recorded response**: replay serves the sorted order, so a test must not assert the order it sorted away. `path` is a JSON pointer (`""` the root, `/items/*/tags`, `*` any one segment) or a bare member name.
+
+    **Sorted JSON is only written pretty-printed.** Any JSON sort rule needs `pretty_json` on; otherwise the commit is refused and nothing is written ("sort_json_keys needs pretty_json: sorted JSON is only written pretty-printed (turn pretty_json on)"). A compact body that was silently reordered would look byte-faithful and not be.
+
+    ```python
+    import servirtium
+
+    with servirtium.record("tapes/tags.md", upstream) \
+            .pretty_json(2).sort_json_keys().sort_json_array("/alpha/x", "n") \
+            .sort_response_headers().sort_header_value("Allow").port(0).start() as rec:
+        get_tags(rec.base_url)
+        rec.commit()
+    ```
+
+    I ran this on the release macOS arm64 library: `{"zeta":1,"alpha":{"y":2,"x":[{"n":"b"},{"n":"a"}]}}` came out as pretty JSON with `alpha` first, `x` sorted `a`, `b`, and the headers as `Accept-Ranges`, `Allow: DELETE, GET, POST`, `Content-Length`, ... in name order. Without `.pretty_json(2)` the commit raised the refusal above and no tape existed.
+
+    **Wrapping.** TODO.md still says the bindings do not wrap these; that is out of date. Every binding I checked wraps all five (Python, .NET, Java, Go, Rust, Ruby, JavaScript and the rest; Kotlin, Scala and Groovy inherit Java). The pre-recorded recorder exposes them as `servirtium.sort_json_keys()` and friends.
+
+    C ABI: `aether_vcr_embed_set_sort_json_keys` / `_get_sort_json_keys`, `_sort_json_array`, `_sort_json_array_at`, `_set_sort_response_headers` / `_get_sort_response_headers`, `_sort_header_value`, `_clear_stable_order`.
+  docs:
+  - AGENTS.md
+  - docs/pretty-json.md
+  - TODO.md
+  tests:
+  - core_tests/test_vcr_stable_order.ae
+  - python/test/test_record.py
+  - dotnet/Servirtium.Vcr.Tests/RecordMutationTests.cs
+  bindings: 'every binding wraps the C ABI calls (checked by grep of each binding''s
+    source; Kotlin, Scala, Groovy via Java). TODO.md says otherwise: stale'
+- slug: pretty-json-xml
+  title: Pretty JSON and XML
+  group: Values and bodies
+  summary: Readable, indented JSON and XML bodies on the tape, and canonical-form
+    matching of JSON and XML requests on playback.
+  body: |
+    Minified bodies make tapes unreadable and make every diff one long line. `pretty_json(indent)` and `pretty_xml(indent)` are single opt-in settings that do two jobs: **record** indented bodies into the tape, and **match** requests on playback by canonical form. Enable the same setting on both the recorder and the player. Both are off by default; indent is 1-16 spaces (higher clamps to 16, 0 turns it off).
+
+    **Recording.** Both request and response bodies are indented when their Content-Type is JSON (`application/json`, `text/json`, `*+json`) or XML (`application/xml`, `text/xml`, `*+xml`, SOAP included). Formatting runs after redactions, secret callbacks and volatile rules, so rules still see the original bytes; recorded `Content-Length` follows the rewritten body. The upstream and the client still see the original bytes. Invalid JSON or XML, and binary bodies, stay byte-exact. The JSON printer keeps key order, duplicate members, array order, string escapes and number spellings (`1.0`, big integers, exponents).
+
+    **Playback.** Responses are served exactly as written. A request body that differs byte for byte gets a second chance at **canonical** equality: JSON ignores whitespace and object-member order (array order matters; `1`, `1.0` and `10e-1` are equal; strings and keys are exact); XML ignores attribute order, indentation, `<x/>` versus `<x></x>`, and CDATA versus escaped text (element order matters). A body that does not parse falls back to byte-exact, so enabling it never loosens non-JSON matching. Mismatch diagnostics show the canonical forms.
+
+    Use `pretty_json` / `pretty_xml` on the playback builder to turn this canonical matching on; there is no separate body-matching switch.
+
+    ```python
+    import servirtium
+
+    with servirtium.record("tapes/soap.md", upstream).pretty_xml(2).port(0).start() as rec:
+        call_soap(rec.base_url)
+        rec.commit()
+
+    with servirtium.playback("tapes/soap.md").pretty_xml(2).port(0).start() as vcr:
+        call_soap(vcr.base_url)   # a compact or differently indented request still matches
+    ```
+
+    I ran this on the release macOS arm64 library: `<a><b x='1'>t</b><c/></a>` was written as indented XML (`<c></c>`), and a request sent as `<req>\n  <id>1</id>\n</req>` matched a tape recorded from `<req><id>1</id></req>`.
+
+    C ABI: `aether_vcr_embed_set_pretty_json` / `_get_pretty_json`, `aether_vcr_embed_set_pretty_xml` / `_get_pretty_xml`.
+  docs:
+  - docs/pretty-json.md
+  - docs/pretty-xml.md
+  tests:
+  - core_tests/test_vcr_pretty_json.ae
+  - core_tests/test_vcr_pretty_xml.ae
+  - core_tests/test_vcr_json_matrix.ae
+  - core_tests/test_vcr_xml_matrix.ae
+  - core_tests/test_vcr_format_options.ae
+  - python/test/test_record.py
+  bindings: every binding
+- slug: volatile-values
+  title: Volatile values
+  group: Values and bodies
+  summary: Declare where per-run values sit; the tape holds numbered tokens, playback
+    binds the live values, and drift detection ignores them.
+  body: |
+    Some values change every run though nothing meaningful changed: a message id, a `Date` header, a request id, the port the test happened to start on. **Volatile-value rules** say where such values sit. One rule set serves recording, playback and drift detection:
+
+    - **Recording** writes each value as a **token**, `{{messageId-1}}`, so re-recording an unchanged conversation gives a byte-identical tape.
+    - **Playback** lets a token in a recorded request match whatever the live request carries there, remembers it, and puts it back wherever the same token appears in a response or later request.
+    - **Drift detection** compares tokenized tapes, so volatile values never count as drift and everything else does.
+
+    **Vocabulary.** A **placeholder** is `{{name}}` in a rule; a **token** is what the tape holds; to **bind** is to attach a real value to a token. A name used on both the request and response side is numbered by distinct value (`{{messageId-1}}`, `-2`); a one-sided name is written unnumbered (`{{serverDate}}`), so coincidences cannot change the tape.
+
+    **Rules.** A rule is a scope (`request path`, `request headers`, `response headers`, `headers`, `request body`, `response body`, `body`) plus a **template** (literal text with placeholders, `{{name:regex}}` for an inline pattern) or a PCRE2 **regex** with named groups. **Profiles** load a vendor's rules from a file (first line `Markers: Mustache`), so every client applies the same ones. **Marker styles** are `{{ }}` (default), `${ }`, `[[ ]]`, set before any rule. Rules are written into the tape's `## Volatile values` block, after which playback needs none in code. A response token nothing bound before replay must be **bound** by the test (`bind("serverDate", ...)`), or start fails naming it. `volatile_report()` lists rules, binds, current bindings and warnings.
+
+    ```python
+    import servirtium
+
+    rules = [("request body", '{"id":"{{messageId}}"}'),
+             ("response body", '"echo":"{{messageId}}"'),
+             ("response headers", "Date: {{serverDate}}")]
+    rec = servirtium.record("tapes/msg.md", upstream).port(0)
+    for scope, pattern in rules:
+        rec = rec.volatile_rule(scope, pattern)
+    with rec.start() as r:
+        post_message(r.base_url, "abc-1")
+        r.commit()        # tape: {"id":"{{messageId-1}}"} ... "echo":"{{messageId-1}}", Date: {{serverDate}}
+
+    with servirtium.playback("tapes/msg.md") \
+            .bind("serverDate", "Wed, 25 Nov 2026 09:00:00 GMT").port(0).start() as vcr:
+        post_message(vcr.base_url, "zzz-9")   # a different id: the echo comes back as zzz-9
+    ```
+
+    I ran this on the release macOS arm64 library: a different live id replayed as the echo, and the report showed `binding: {{messageId-1}} = zzz-9`. Dollar-curly markers wrote `${messageId}` into the block.
+
+    C ABI: `aether_vcr_embed_volatile_rule`, `_volatile_bind`, `_volatile_profile`, `_set_volatile_markers`, `_volatile_report`.
+  docs:
+  - docs/volatile-values.md
+  tests:
+  - core_tests/test_vcr_volatile_grammar.ae
+  - core_tests/test_vcr_volatile_playback.ae
+  - core_tests/test_vcr_volatile_record.ae
+  - core_tests/volatile_fixture.ae
+  - python/test/test_volatile.py
+  - dotnet/Servirtium.Vcr.Tests/VolatileValuesTests.cs
+  bindings: every binding (Pharo's conformance test is written but unrun per TODO.md)
+- slug: substitute-and-placeholders
+  title: Substitute, placeholders and request-header tokens
+  group: Values and bodies
+  summary: 'Playback-side rewriting of replayed responses: your own placeholders via
+    Substitute, the VCR''s own address via {{baseUrl}}, and a live request header
+    echoed back.'
+  body: |
+    A tape recorded last month holds last month's addresses. These playback features fill the right values at replay time. All are configured on the **playback** VCR before it starts.
+
+    **Built-in tokens (no registration).** `{{baseUrl}}` (scheme, `://`, the live request's Host), `{{request.host}}` and `{{request.scheme}}` are filled from the request being answered, in a recorded response (body and headers) and, since alpha.20, in a recorded request (path, headers, body) when comparing. So a tape holding the VCR's own URL replays on port 0 with no setup, and a different address is still a mismatch.
+
+    **`{{request.header.NAME}}`** is filled with the live request's `NAME` header, **in responses only** (on the request side it would match any value). Use it for services that echo an id the client verifies (Azure Storage's `x-ms-client-request-id`): record that response header with `redact_header` and the token as the replacement.
+
+    **`substitute(field, pattern, replacement, required=True)`** rewrites your **own** placeholders in the replayed response, in the body, headers, or both (a literal pattern, not a regex). With `required` (the default), `assert_all_redactions_used` reports a rule that never fired; `substitute_optional` exempts it, for a shared fixture a given tape may not exercise. `assert_no_unfilled_placeholders` catches a placeholder left in a response.
+
+    **`unredact`** is the request-side partner (see structured redaction). .NET also offers `Placeholder(marker, value)`, one call that registers an unredact on the path and request body plus a response substitution.
+
+    In .NET the field is `VcrResponseField` (`ResponseBody`, `ResponseHeaders`, `Response`); `VcrField.Response` no longer exists for Substitute.
+
+    ```python
+    import servirtium
+    from servirtium import Field
+
+    # tape (hand-written or recorded) has, in a response:
+    #   Location: {{vault}}/widgets/1
+    #   x-ms-client-request-id: {{request.header.x-ms-client-request-id}}
+    #   {"self":"{{baseUrl}}/widgets","next":"{{vault}}/widgets?page=2"}
+    with servirtium.playback("tapes/widgets.md") \
+            .substitute(Field.RESPONSE, "{{vault}}", "https://vault.example").port(0).start() as vcr:
+        reply = fetch(vcr.base_url + "/widgets", headers={"x-ms-client-request-id": "req-42"})
+        vcr.assert_all_redactions_used()
+        vcr.assert_no_unfilled_placeholders()
+    ```
+
+    I ran this against a hand-written tape on the release macOS arm64 library: the body came back with `self` set to the VCR's own address, `next` pointing at `https://vault.example`, `Location` rewritten, and `x-ms-client-request-id` echoing `req-42`; both assertions passed.
+
+    C ABI: `aether_vcr_embed_substitute` (`field`: 2 ResponseBody, 5 ResponseHeaders, 6 Response; plus `required` 0/1), `_clear_substitutions`, `_assert_all_redactions_used`, `_assert_no_unfilled_placeholders`, `_unredact`.
+  docs:
+  - docs/vcr-address.md
+  - docs/redaction-helpers.md
+  - AGENTS.md
+  tests:
+  - core_tests/test_vcr_self_address.ae
+  - core_tests/test_vcr_request_header_token.ae
+  - core_tests/test_vcr_unredactions.ae
+  - python/test/test_playback_match.py
+  - dotnet/Servirtium.Vcr.Tests/SubstituteTests.cs
+  bindings: 'unredact: every binding. substitute / substitute_optional: Dart, .NET,
+    Elixir, Erlang, Go, Haskell, Janet, Java, JavaScript, Lua, Nim, Pharo, PHP, Python,
+    Ruby, Rust, Zig (and Kotlin/Scala/Groovy/F#/Clojure through Java/.NET); not C,
+    C++, Crystal, D, Julia, Swift, Gleam, LFE. Placeholder(marker, value): .NET only.
+    Built-in {{baseUrl}} / {{request.*}} tokens: core, every binding'
+- slug: binary-bodies-and-encodings
+  title: Binary bodies and encodings
+  group: Values and bodies
+  summary: Binary bodies are base64 on the tape, text bodies keep their exact bytes
+    (CRLF included), gzip is decoded, and chunking never reaches the tape.
+  body: |
+    A tape is markdown, so what goes into it has to survive an editor and git. Servirtium records HTTP **messages**, not connections: what the app means, never the framing.
+
+    **Binary bodies.** A body with a control byte (other than tab, LF, CR), DEL, or that is not well-formed UTF-8 is written as **base64**, wrapped at 76 columns, under a heading marked `base64 below`: `(application/octet-stream base64 below)` on a request, `(200: application/octet-stream base64 below)` on a response. The reader decodes it on load, so request matching compares bytes and playback replays the original bytes. Text rules (redaction, volatile values, pretty-printing) skip a binary body.
+
+    **Text bodies are byte-exact, CR included.** A CRLF inside a body is payload and stays as sent. Tape structure is written with LF; a tape that has been converted wholesale to CRLF (an autocrlf checkout) still parses. Keep tapes out of git's line-ending conversion (`*.md -text`).
+
+    **Encodings.**
+
+    - **Chunked** transfer is decoded: the tape holds the payload. A `Transfer-Encoding: chunked` header stays on the tape as sent (a recording has no built-in drop list), but playback does not replay it: the server frames its own response with `Content-Length`.
+    - **gzip alone** on a body that inflates is stored **decoded**, without that response's `Content-Encoding` and `Content-Length`; a playback client that sends `Accept-Encoding: gzip` gets it compressed again. Any other `Content-Encoding` (a list such as `deflate, gzip`, a body that is not really gzip, an empty body under the header) is kept as sent and replayed verbatim.
+    - The VCR code decodes **gzip only**. The release libraries link brotli and zstd for the HTTP stack, but the VCR has no brotli or zstd decoding of its own; those encodings are kept as sent.
+    - Playback invents no `Content-Type` the recording lacked, and a HEAD response keeps its `Content-Length`.
+
+    ```python
+    import servirtium
+
+    with servirtium.record("tapes/files.md", upstream).port(0).start() as rec:
+        fetch(rec.base_url + "/chunk")   # chunked reply: tape holds "hello world"
+        fetch(rec.base_url + "/bin")     # bytes 0..255: tape holds base64 under "base64 below"
+        fetch(rec.base_url + "/crlf")    # "a\r\nb\r\n": CRs stay in the tape
+        rec.commit()
+
+    with servirtium.playback("tapes/files.md").port(0).start() as vcr:
+        raw = fetch(vcr.base_url + "/bin")   # the original 256 bytes
+    ```
+
+    I ran this on the release macOS arm64 library: the 256 bytes round-tripped exactly through base64, the chunked body was stored as `hello world` and replayed with `Content-Length: 11`, and the CRLF body came back as `a\r\nb\r\n`.
+  docs:
+  - AGENTS.md
+  - docs/pretty-json.md
+  tests:
+  - core_tests/test_vcr_binary_body.ae
+  - core_tests/test_vcr_crlf_body.ae
+  - core_tests/test_vcr_bom_crlf.ae
+  - core_tests/test_vcr_gzip_normalize.ae
+  - core_tests/test_vcr_content_encoding_kept.ae
+  - core_tests/test_vcr_head_content_length.ae
+  - core_tests/test_vcr_no_invented_content_type.ae
+  - core_tests/test_vcr_empty_body_framing.ae
+  bindings: every binding (all in core)
+
+- slug: cli-serve-check
+  title: 'The servirtium CLI: serve and check'
+  group: Tools
+  summary: A self-contained binary that replays tapes as a live stub server and lints
+    them.
+  body: |
+    `servirtium` is a standalone static binary over the same pure-Aether core (no `.so`, no
+    `SERVIRTIUM_VCR_LIB`, no language binding), built from `core/cli.ae` (`aeb core/.cli.ae` writes
+    `target/servirtium`, or `ae build core/cli.ae -o servirtium`). It is not one of the release assets.
+
+    **`servirtium serve <tape.md>[,more.md...] [port] [--ordered]`** replays a tape, or a comma-separated list
+    concatenated into one, as a live server on `port` (default 8080) and blocks until killed. Zero code: curl
+    it, point a front-end dev server at it, demo against it. It defaults to **match-multiple** playback, so
+    repeated and out-of-order requests keep answering across the union of the tapes (first match wins);
+    `--ordered` restores strict one-shot tape order over the concatenation, after which a request is
+    `599 tape exhausted`.
+
+    **`servirtium check [--canonical] <tape.md> ...`** lints tapes: each must parse (exit 0, else 1, so it
+    works as a pre-commit hook). `--canonical` additionally requires the file to be byte-identical to the
+    emitter's compact form, which is what a recording produces and what the `single_get.md` goldens are.
+    The parser itself stays lenient and accepts the looser "blank line after every fence" style other
+    Servirtium tools emit.
+
+    ```sh
+    servirtium check tapes/*.md
+    servirtium check --canonical tapes/single_get.md
+    servirtium serve tapes/users.md,tapes/orders.md 8080
+    curl http://127.0.0.1:8080/users
+    servirtium serve tapes/users.md 8080 --ordered      # each interaction once, in order
+    ```
+
+    Verified with a CLI built from the alpha.20 tree: `check` on a golden tape printed
+    `ok - 1 interaction(s), canonical` and exited 0; on a file that is not a tape it printed
+    `FAIL - tape (bad.md) contains no '## Interaction ' headers` and exited 1; `serve` answered the same path
+    twice, and with `--ordered` the second request was `599 tape exhausted`. A hand-written tape that parsed
+    but was not emitter-shaped failed `--canonical` with `emitter form is 568 bytes, file is 567 bytes`.
+    A comma-separated `serve` list answered requests from both tapes.
+
+    Usage errors exit 2 (no arguments, unknown command, bad port).
+  docs:
+  - README.md
+  - AGENTS.md
+  tests:
+  - core_tests/cli-tests.sh
+  - core_tests/.cli.ae
+  bindings: CLI only; it is not part of any language binding and is not a release
+    asset
+- slug: har-import-export
+  title: HAR import and export
+  group: Tools
+  summary: Turn a HAR 1.2 capture (Chrome DevTools, Fiddler, Charles, Postman) into
+    a tape, and a tape back into HAR.
+  body: |
+    Traffic you cannot easily route through a recording proxy, such as a browser single-page app or a mobile
+    app behind a debugging proxy, can still become a tape: capture it, export a `.har`, convert it once, and
+    replay it under any binding.
+
+    ```sh
+    servirtium import capture.har tapes/session.md     # HAR 1.2 -> tape
+    servirtium export tapes/session.md session.har     # tape -> HAR 1.2
+    servirtium check --canonical tapes/session.md
+    servirtium serve tapes/session.md 8080
+    ```
+
+    The tape goes through the same emitter that record mode uses, so it is byte-consistent with a native
+    recording and passes `check --canonical`. The mapping choices are deliberate:
+
+    - **Request headers are dropped.** A browser's volatile headers would never match a test client, so an
+      imported tape matches on **method + path (+ request body)**, like the `single_get` golden.
+    - **The request body is kept**, which tells apart POSTs to one path. For a JSON API pair it with
+      `pretty_json` on playback.
+    - **Response** status, headers and body are kept; hop-by-hop headers and `Content-Encoding` are dropped
+      because the body is stored decoded. Header-name casing is kept as is (HTTP/2 HARs lower-case them).
+      Base64 HAR content becomes the tape's `base64 below` body.
+    - Export writes HAR 1.2 JSON; tape to HAR to tape is byte-identical in the round-trip test.
+
+    Verified with a one-entry HAR (`GET http://x/ok` answering `ok-body`): the imported tape had an empty
+    request-headers block, `Content-Type: text/plain`, `ok-body`, and passed `check --canonical`; `export`
+    wrote HAR 1.2 JSON with `"creator":{"name":"servirtium-vcr"...}`.
+
+    This is a convert-once offline step, so it is a CLI first. The functions are also in the C ABI for a
+    binding that wants them: `aether_vcr_embed_har_import(har_path, tape_path)` and
+    `aether_vcr_embed_har_export(tape_path, har_path)`, both returning an error string (empty on success).
+    I found no per-language wrapper for either.
+  docs:
+  - README.md
+  - AGENTS.md
+  tests:
+  - core_tests/test_vcr_har_import.ae
+  - core_tests/test_vcr_har_export.ae
+  - core_tests/cli-tests.sh
+  bindings: CLI and C ABI only; no per-language wrapper that I could find
+- slug: bruno-convert-and-import
+  title: 'Bruno: convert and import'
+  group: Tools
+  summary: Turn a Bruno collection's saved examples into tapes with no network, or
+    fire its requests through record mode to hydrate a tape from a live service.
+  body: |
+    Bruno stores each request as a `.bru` file in your repository. Servirtium reads those files with **Bruno's
+    own parser** (`@usebruno/lang`, vendored and run in QuickJS inside the engine), then works out what each
+    request means (variables, inherited headers and auth, path, body) in Aether.
+
+    **`servirtium convert bru <collection> <out-dir> [--env NAME]`** converts the examples a collection
+    saved, with no service and no network. Each request that has examples becomes one tape, one interaction per
+    example, at a space-free slugged path (`Widget Things/Get One.bru` becomes `widget-things/get-one.md`; a
+    collision gets `-2`). `<out-dir>/CONVERSION.md` lists what became what. Variables resolve from the request,
+    its folders, the collection and `environments/NAME.bru`; one with no value stays as `{{name}}`. Every
+    interaction carries a `## [Note]` naming its source and example and the headers the collection sends
+    (credentials never written; request headers are not matched). Where an example documents no response body,
+    the note's title says `response body not documented`, so an empty body is never mistaken for an empty
+    response.
+
+    **`servirtium import-bru <collection> <upstream> <out.md> [--var NAME] [--port N]`** is the other direction:
+    it fires each request (folders included, in folder, `meta.seq`, then name order) through record mode against
+    the real `<upstream>` and captures the live responses. The collection's base-URL variable (`{{baseUrl}}`;
+    `--var` changes it) is the local record proxy. It sends no headers and no auth, and the tape matches on
+    method, path and body. **It makes real calls**, with side effects for POST, PUT and DELETE.
+
+    ```sh
+    servirtium convert bru "My Collection" tapes/bruno --env Local
+    servirtium serve tapes/bruno/widget-things/get-one.md 8080
+    servirtium import-bru "My Collection" http://127.0.0.1:9000 tapes/hydrated.md
+    ```
+
+    ```javascript
+    import { convertBru } from '@servirtium/vcr'
+    convertBru('My Collection', 'tapes/bruno')          // third argument: environment name, '' for none
+    ```
+
+    Verified with the CLI: a one-request, one-example collection in a folder with a space converted to
+    `widget-things/get-one.md` plus `CONVERSION.md`, and the tape served the example's body. `import-bru` against
+    a local Python upstream hydrated one interaction and the tape passed `check --canonical`.
+
+    C ABI: `aether_vcr_embed_convert_bru(collection_dir, out_dir, env)`. The JavaScript binding wraps it as
+    `convertBru`; I found no other binding wrapper. `import-bru` is CLI only.
+  docs:
+  - README.md
+  - docs/bruno-import-idioms.md
+  - bruno_import_demo/README.md
+  tests:
+  - core_tests/test_vcr_bru_convert.ae
+  - core_tests/test_vcr_bru_upstream.ae
+  - core_tests/cli-tests.sh
+  - javascript/src/convert-bru.test.ts
+  bindings: CLI (convert bru, import-bru), the C ABI (convert_bru) and the JavaScript
+    binding (convertBru) only
+- slug: platforms-and-release
+  title: Platforms and release
+  group: Repository
+  summary: The platform matrix the engine is cross-built for, from one Linux host,
+    and how a tag becomes a release.
+  body: |
+    The engine is pure Aether plus a 12-line C string bridge, so it cross-compiles for the whole matrix from
+    **one Linux runner** with `ae build --target` (zig cc), with no per-OS build runner:
+
+    | Platform | CPUs | Asset suffix |
+    |---|---|---|
+    | Linux glibc | x86_64, arm64 | `linux-<arch>.so` |
+    | Linux musl | x86_64, arm64 | `linux-<arch>-musl.so` |
+    | macOS | x86_64, arm64 | `macos-<arch>.dylib` |
+    | Windows | x86_64, arm64 | `windows-<arch>.dll` (+ `.dll.lib`) |
+    | FreeBSD | x86_64 | `freebsd-x86_64.so` |
+
+    No 32-bit Windows or Linux, and no FreeBSD arm64 yet (it awaits a matching sysroot). All nine libraries
+    must build, and the workflow verifies every checksum, both Windows import libraries and the C ABI's exports.
+    Consumers need Aether 0.838.0 or newer for libc-aware selection of the glibc and musl Linux packages.
+
+    **Release flow.** Pushing a `v*` tag starts the GitHub release workflow: it cross-builds, verifies,
+    creates the release (prerelease tags are marked as such) and downloads the published assets again to check
+    them. It also creates `go/v<version>` for the Go module and a second, bare semver tag for SwiftPM, carrying
+    the artifact bundle's checksum in `Package.swift` (the checksum cannot exist until the bundle is built, so
+    the `v` tag's commit has the source form and the bare tag's commit has the binary form). Never create either
+    by hand. `release/.version.ae` rewrites every version pin from one tag, each in its ecosystem's spelling
+    (Python `2.0.0a20`, RubyGems `2.0.0.alpha.20`, SemVer elsewhere).
+
+    ```sh
+    SVCR_RELEASE_SET=v2.0.0-alpha.20 aeb release/.version.ae     # rewrite every pin from the tag
+    SVCR_RELEASE_TAG=v2.0.0-alpha.20 aeb release/.version.ae     # check them all
+    release/build.sh                                             # linux + macos locally
+    RELEASE_EXTRA_TARGETS=1 release/build.sh                     # + windows and freebsd
+    ```
+
+    The release also carries `ae add` binary packages (the same libraries under `servirtium_vcr-<tag>-...` names
+    plus an `aether.toml`) for Aether programs. Verified against `gh release view` for the alpha.20 asset
+    names, and `release/README.md`, `release/targets.env` and `release/toolchain.env` (Aether v0.941.0, aeb
+    v0.348, zig 0.17.1) for the rest; I did not run the build.
+  docs:
+  - release/README.md
+  - docs/packaging.md
+  - release/targets.env
+  - release/toolchain.env
+  tests:
+  - release/.tests.ae
+  - release/artifact_tests.ae
+  - release/artifacts.ae
+  bindings: not binding-specific
+- slug: tape-format
+  title: The tape format
+  group: Repository
+  summary: 'The Servirtium markdown tape as the emitter writes it today: interactions,
+    an optional licence notice, volatile-values block and rules footer, {{tokens}}
+    and base64 bodies.'
+  body: |
+    A tape is plain markdown that renders on GitHub and diffs in a review. The emitter writes a **compact**
+    form that is canonical here (`servirtium check --canonical` enforces it): the next `###` heading follows a
+    closing code fence directly, blank lines separate interactions, and one trailing blank line ends the tape. The
+    parser is lenient and also accepts the looser "blank line after every fence" style other Servirtium
+    implementations emit. Recording a tape is only done by `commit`; a `*` around the method
+    (`emphasize_http_verbs`) and 4-space indented blocks (`indent_code_blocks`) are opt-in.
+
+    ~~~~text
+    ## LICENSE NOTICE                       (optional, add_license_notice; plain text, once, before Interaction 0)
+
+    ## Volatile values                      (optional: the rules that produced {{name-N}} tokens, before Interaction 0)
+
+    - request body: `<a:MessageID>urn:uuid:{{messageId}}</a:MessageID>`
+
+    ## Interaction 0: POST /orders
+
+    ## [Note] Create:                       (optional, from note(); ignored by playback)
+
+    why this exists
+
+    ### Request headers recorded for playback:
+
+    ```
+    Content-Type: application/json
+    ```
+    ### Request body recorded for playback (application/json):
+
+    ```
+    {"item": 7}
+    ```
+    ### Response headers recorded for playback:
+
+    ```
+    Content-Type: application/json
+    ```
+    ### Response body recorded for playback (201: application/json):
+
+    ```
+    {"id": "{{uuid-1}}"}
+    ```
+
+    ## [Recording rules]                    (optional footer, set_rules_footer; everything after it is ignored)
+    ~~~~
+
+    **Headings.** The request-body heading carries the content type, the response-body heading the status and
+    type, `(201: application/json)`. Request headers are written sorted by name; response headers in the order the
+    service sent them; header names keep their casing.
+
+    **Binary bodies are base64.** A body that is not text (a control byte, or not well-formed UTF-8) is written
+    wrapped at 76 columns under a heading marked `base64 below`: `(<type> base64 below)` for a request and
+    `(200: <type> base64 below)` for a response. Text bodies, carriage returns included, stay byte-exact; a tape
+    converted wholesale to CRLF still parses.
+
+    **Tokens.** `{{baseUrl}}`, `{{request.host}}`, `{{request.scheme}}` and `{{request.header.NAME}}` are filled by
+    playback (see "The VCR's own address"). `{{name-N}}` and `{{name}}` are volatile-value tokens, numbered per
+    value, that playback binds to the live value; a literal token-shaped text is escaped with a backslash. The
+    marker style can be `${ }` or `[[ ]]` instead.
+
+    **The footer.** `## [Recording rules]` is a table of what the test left out or rewrote (removed headers,
+    redactions, normalizations) and the interactions each touched. The parser **stops** at that heading, so
+    nothing in a footer can become an interaction.
+
+    Keep tapes out of git's line-ending conversion (`*.md -text` for the tape directory). I confirmed the layout
+    by recording through the Python binding (licence notice, note, headers, body) and importing a HAR; the
+    footer and volatile block are quoted from the committed tapes under `core_tests/volatile/` and
+    `pre-recorded/joomla-api/`.
+  docs:
+  - README.md
+  - AGENTS.md
+  - docs/volatile-values.md
+  - docs/vcr-address.md
+  tests:
+  - core_tests/test_vcr_rules_footer.ae
+  - core_tests/test_vcr_license_notice.ae
+  - core_tests/test_vcr_notes.ae
+  - core_tests/test_vcr_binary_body.ae
+  - core_tests/test_vcr_bom_crlf.ae
+  - core_tests/test_vcr_crlf_body.ae
+  - core_tests/test_vcr_format_options.ae
+  - core_tests/cli-tests.sh
+  bindings: not binding-specific; the format is the core's
+- slug: packaging-and-get-package-sh
+  title: Packaging and get-package.sh
+  group: Repository
+  summary: What a release actually ships, how to build any language's package from
+    the tag with get-package.sh, and the platform matrix.
+  body: |
+    **What a release ships.** Nothing is published to a registry (no PyPI, npm, crates.io, NuGet.org or Maven
+    Central) and there may never be. Each GitHub release (`@TAG@`) attaches only:
+
+    - per-platform native libraries, `libservirtium_vcr-@TAG@-<os>-<arch>.{so,dylib,dll}` with a `.sha256` each
+      (Windows also `.dll.lib`), for Linux glibc and musl (x86_64, arm64), macOS (x86_64, arm64), Windows
+      (x86_64, arm64) and FreeBSD x86_64. There is no 32-bit build;
+    - `servirtium-vcr-@VER@.jar`, a fat jar with six natives (Linux, macOS, Windows, x64 and arm64);
+    - `Servirtium.Vcr.@VER@.nupkg`, targeting net8.0 and net48, eight RIDs including musl;
+    - `servirtium-vcr-@VER@.tgz`, the npm tarball with eight natives;
+    - `servirtium-vcr-swift-@TAG@.artifactbundle.zip` (static libraries), which the root `Package.swift` downloads;
+    - `SHA256SUMS.txt`.
+
+    Every other language has **no shipped package**: you fetch the native library for your platform and use the
+    binding from the tagged source, or build the package locally.
+
+    **`get-package.sh <language>`** builds that language's package from source with the pinned toolchain. It
+    runs `bootstrap.sh` (installing the pinned `ae` and `aeb`), runs one target, `<lang>/.package.ae`, copies the
+    artifact to `./out/<lang>/` and prints the command to consume it. It runs **no tests**.
+
+    ```sh
+    ./get-package.sh                # list the 30 languages
+    ./get-package.sh ruby           # build the gem, copy it to ./out/ruby, print "gem install ..."
+    ./get-package.sh all            # every language's package (aeb .packages.ae)
+
+    # from a bare machine: clones into ~/.cache/servirtium-vcr first
+    curl -fsSL https://raw.githubusercontent.com/servirtium/servirtium-vcr/main/get-package.sh | sh -s -- ruby
+    ```
+
+    Environment: `OUT` (where artifacts go, default `./out`), `SERVIRTIUM_SRC` (the checkout used when piped),
+    `PREFIX` (toolchain prefix). Languages without a file artifact (Rust, Go, Nim, Zig, Haskell, Crystal, Julia,
+    Janet, Swift, D, PHP, Dart, Pharo) are source packages with the library staged inside, which you point a path
+    dependency at; Java and the JVM four install into `~/.m2`; the BEAM four share one relocatable
+    `servirtium_nif` OTP app.
+
+    Without the Aether toolchain: `aeb ruby/.package.ae --overrideDep core/.build.ae=core/.getFromGitHubReleases.ae`
+    downloads the prebuilt library from the release and verifies its `.sha256` instead of compiling it.
+
+    Verified by reading `get-package.sh`'s language table and `--help`-less listing behaviour; I did not build a
+    package with it. The release asset list was checked with `gh release view v2.0.0-alpha.20`.
+  docs:
+  - docs/packaging.md
+  - release/README.md
+  - get-package.sh
+  - README.md
+  tests:
+  - release/.tests.ae
+  - release/artifact_tests.ae
+  - release/artifacts.ae
+  - ".packages.ae"
+  bindings: all 30 languages
+- slug: three-test-layers
+  title: Three test layers
+  group: Repository
+  summary: Every language has a .package.ae, a .tests.ae and a .example.ae, answering
+    three different questions, on top of the core's own pure-Aether tests.
+  body: |
+    One engine, thin bindings: so the tests are split by the question each one answers, and each is an `aeb`
+    leaf (`aeb <lang>/.tests.ae`). All 30 languages have all three.
+
+    | Leaf | Question it answers | Needs |
+    |---|---|---|
+    | `<lang>/.package.ae` | can I **build** the distributable? | that language's compiler and packer, **no test runner** |
+    | `<lang>/.tests.ae` | does the **binding** work? | its compiler and test runner |
+    | `<lang>/.example.ae` | can a **stranger install and use it**? | a clean environment and the package |
+
+    **`.tests.ae`** runs the binding's own suite against the source tree, with the engine handed in through
+    `SERVIRTIUM_VCR_LIB`. It proves the binding works, not that a downstream user can install it.
+
+    **`.package.ae`** builds the idiomatic distributable the way a consumer receives it (wheel, gem, npm
+    tarball, nupkg, jar in `~/.m2`, crate, ...) with the engine bundled inside, and runs **no tests**, so a
+    wheel builds on a box with no pytest.
+
+    **`.example.ae`** installs that artifact into a **clean** environment (a fresh venv, an isolated gem
+    directory, a local NuGet feed, a relocated package) and runs `<lang>/example/`, a real consumer project that
+    imports the installed package and replays the canonical `single_get` tape with `SERVIRTIUM_VCR_LIB` unset,
+    so only the bundled engine can satisfy the load. Python, Rust and Java also record and compare their tape
+    byte for byte with the golden. This layer caught bugs a green `.tests.ae` hid (Swift's relative `-L`, a
+    `dub.json` warning).
+
+    **Below the bindings**, `core_tests/` holds the pure-Aether tests of the core itself (`test_vcr_*.ae`), the
+    CLI's black-box `cli-tests.sh`, shared fixtures under `target/test-tools/` that every binding's tests
+    reuse, and `release/.tests.ae`, which checks the release verifier's success and failure paths.
+
+    ```sh
+    aeb core_tests/.tests.ae        # the core, first
+    aeb python/.tests.ae            # one binding's suite
+    aeb python/.package.ae          # build the wheel
+    aeb python/.example.ae          # install it into a clean venv and run the consumer example
+    aeb .packages.ae                # every language's package, one command
+    ```
+
+    Never run two top-level `aeb` commands at once in one checkout; they share a build workspace. Not run by me
+    (they need `ae` plus `aeb` and each language's tools); read from AGENTS.md and docs/packaging.md.
+  docs:
+  - AGENTS.md
+  - docs/packaging.md
+  - docs/dev-setup.md
+  tests:
+  - core_tests/.tests.ae
+  - python/.tests.ae
+  - python/.package.ae
+  - python/.example.ae
+  - release/.tests.ae
+  - ".packages.ae"
+  bindings: all 30 languages
+- slug: sdk-harnesses
+  title: SDK harnesses
+  group: Repository
+  summary: A vendor SDK's own test suite, unchanged, with Servirtium in the middle
+    of its HTTP; today one harness, the Azure SDK for .NET Blob Storage tests against
+    Azurite.
+  body: |
+    `sdk_harnesses/` shows Servirtium slotting into a suite someone else wrote and maintains. Each
+    subdirectory is named after the upstream repository it drives. **What is in it today:** one harness,
+    `azure-sdk-for-net/`, which runs `Azure.Storage.Blobs`' own tests against Azurite (Microsoft's Azure Storage
+    emulator in a container).
+
+    What every harness keeps to:
+
+    - **Upstream sources are fetched, never checked in**: a pinned commit, sparse-checked-out into the harness's
+      `target/`. Checked in are the glue, the runner, the README and the recordings.
+    - **Recordings are made only against software running locally**, never a vendor-hosted API, and each names
+      its provenance: upstream repository and commit, licence, the emulator's image tag.
+    - **Everything the toolchain downloads stays in the harness's `target/`.**
+    - **Runner: aeb**: `.build.ae` fetches and builds, `.tests.ae` replays offline, `.record.ae` re-records.
+
+    The Azure harness has three modes: **record** (the tests run against Azurite with Servirtium between, one
+    tape per test), **playback** (the same tests with no container engine; a passing test fails if its tape
+    has interactions it never asked for) and **negative** (a tape altered by hand makes its test fail, so
+    playback is checking something). Last reported run (2026-11-12): 2168 test runs, 1478 passing in record and
+    1478 in playback, 690 excluded or skipped, no failures; 1110 tapes, 13 MB, 641 of them with a binary body
+    as base64.
+
+    It found real engine gaps, now fixed in core: binary bodies as base64, an empty request framed
+    `Content-Length: 0`, `Expect` never forwarded, `forward_host` (record mode sends the upstream the client's
+    Host; .NET only so far), and `{{request.header.NAME}}`.
+
+    ```sh
+    aeb sdk_harnesses/azure-sdk-for-net/.tests.ae    # fetch + build, then playback and negative checks
+    aeb sdk_harnesses/azure-sdk-for-net/.record.ae   # re-record against Azurite, then play the new tapes back
+    ```
+
+    Needs the .NET 10 SDK and git, and Docker or Podman only for recording. Not run by me (no .NET SDK here);
+    counts are from the harness README.
+  docs:
+  - sdk_harnesses/README.md
+  - sdk_harnesses/azure-sdk-for-net/README.md
+  tests:
+  - sdk_harnesses/azure-sdk-for-net/run.sh
+  - sdk_harnesses/azure-sdk-for-net/negative.txt
+  - core_tests/test_vcr_binary_body.ae
+  - core_tests/test_vcr_forward_host_and_expect.ae
+  - core_tests/test_vcr_request_header_token.ae
+  bindings: ".NET (the harness drives the .NET binding)"
+- slug: pre-recorded
+  title: Pre-recorded tapes
+  group: Repository
+  summary: 'Re-usable tapes of real services'' HTTP APIs: 64 services recorded through
+    testcontainers (tapes shipped for 57), a Joomla API suite, an NTLM suite and a
+    converted Bruno collection.'
+  body: |
+    `pre-recorded/` holds tapes you can replay in any language's tests, with no container and no service:
+    `servirtium serve <tape.md>` from the CLI, or any binding's playback. Only services with an HTTP API can be
+    here, since Servirtium records HTTP messages (not Mongo, Postgres, Redis or Kafka).
+
+    | Directory | What made the recordings |
+    |---|---|
+    | `from-testcontainers/` | Aether tests that start each service with testcontainers-ae and put Servirtium in the middle |
+    | `joomla-api/` | A test that starts Joomla 6.2.0 and MariaDB 11.4 in containers: CRUD on articles, categories, tags, banners and users, ids chained; 8 tapes |
+    | `ntlm/` | A pytest suite with our own NTLM-protected server and four Python clients; 8 tapes (see "NTLM and Negotiate") |
+    | `converted/from.bru/` | `servirtium convert bru` on René Kreijveld's Joomla 6 Web Services Bruno collection, as it is: the author's examples, not recordings (189 of 194 interactions have no response body, and say so). 182 tapes, **GPL-3.0** like the collection, kept apart from the MIT rest |
+
+    **Counting `from-testcontainers/` accurately:** the directory has 66 entries. Two are not services (`lib/`
+    and `servirtium/`, the module every suite uses), leaving **64 services**. For **57** of them the tapes are
+    shipped (240 tape files in all); for **7** (`cockroachdb`, `dynamodb`, `gcloud_datastore`,
+    `gcloud_firestore`, `gcloud_pubsub`, `pinecone`, `timeplus`) only the test and recorder are shipped, because a
+    vendor's terms could reasonably be read as forbidding published recordings. Run such a test with
+    `TCAE_VCR=record` for your own tapes and do not publish them.
+
+    **Licences and terms bind anyone using a tape.** `from-testcontainers/UPSTREAM-TERMS.md` and `NOTICE` list
+    them, tapes of a service with restrictive terms start with a `## LICENSE NOTICE`, and a converted collection
+    carries its source's licence in its own directory with its source repository and pinned commit. Each
+    service's README says whether its tapes are an emulator's answers or the real product at a pinned version;
+    either way, record against your own target before trusting details.
+
+    ```sh
+    servirtium serve pre-recorded/joomla-api/tapes/refuses_a_request_without_a_token.md 8080
+    curl -H 'Accept: application/vnd.api+json' \
+         -H 'User-Agent: servirtium-vcr pre-recorded tests (Aether std.http.client)' \
+         http://127.0.0.1:8080/api/index.php/v1/content/articles
+    # {"errors":[{"title":"Forbidden"}]}   (401)
+    ```
+
+    Replaying needs the request to match what the tape recorded: this tape recorded `Accept` and `User-Agent`,
+    so a bare `curl` gets `599` (verified), while with those two headers it gets the recorded 401. A tape
+    converted from Bruno or imported from HAR has an empty request-headers block and matches on method, path and
+    body only. Verified by serving that tape with the CLI built from the alpha.20 tree. The counts above were
+    computed from the working tree.
+  docs:
+  - pre-recorded/README.md
+  - pre-recorded/from-testcontainers/README.md
+  - pre-recorded/from-testcontainers/UPSTREAM-TERMS.md
+  - pre-recorded/joomla-api/README.md
+  - pre-recorded/ntlm/README.md
+  - pre-recorded/converted/from.bru/renekreijveld_bruno-joomla-api/README.md
+  tests:
+  - pre-recorded/joomla-api/test_joomla.ae
+  - pre-recorded/from-testcontainers/vault/test_vault.ae
+  - pre-recorded/ntlm/test_ntlm.py
+  bindings: 'not binding-specific: tapes replay under any Servirtium implementation'
+- slug: c-abi
+  title: The C ABI
+  group: Repository
+  summary: 99 exported functions, all prefixed aether_vcr_embed_ and all taking an
+    opaque per-server handle; every binding is a thin wrapper over them.
+  body: |
+    Everything Servirtium does lives in one library, `libservirtium_vcr`, written in pure Aether. `core/embed.ae` is its C ABI: **99 exported functions**, each prefixed `aether_vcr_embed_`. A language binding opens a handle, configures it, starts it, reads the base URL, and stops; nothing smarter belongs in a binding.
+
+    **Conventions.** Every call takes the opaque handle of one VCR (N servers can run in one process, one per port; there is no process-wide state). Config calls return a `char*` error: an empty string means success. Returned strings are caller-owned and NUL-terminated: copy them out and free with `aether_vcr_embed_free_string`. `Field` ints: `Path` 1, `ResponseBody` 2, `RequestHeaders` 3, `RequestBody` 4, `ResponseHeaders` 5, and 6 (`Response`, substitution only). Outcome (`last_kind`): `Ok` 0, `PathOrMethodDiff` 1, `HeaderMissing` 2, `HeaderValueDiff` 3, `HeaderUnexpected` 4, `TapeExhausted` 5, `BodyDiff` 6, `RecordError` 7.
+
+    **Function families (counts are from `core/embed.ae`).**
+
+    | Family | Count | Functions |
+    |---|---|---|
+    | Lifecycle | 12 | `open_playback`, `open_playback_url`, `open_record`, `open_error`, `start`, `stop`, `close`, `destroy`, `discard`, `stop_and_flush`, `stop_and_flush_fail_if_changed`, `stop_and_flush_or_check` |
+    | Introspection and TLS | 7 | `port`, `base_url`, `tape_length`, `reset_cursor`, `last_tls_protocol`, `set_tls`, `set_tls_pem` |
+    | Diagnostics and assertions | 11 | `last_error`, `last_error_ex`, `diagnostics_json`, `assert_no_mismatches`, `test_context`, `last_kind`, `last_index`, `clear_last_error`, `assert_all_consumed`, `assert_all_redactions_used`, `assert_no_unfilled_placeholders` |
+    | Redaction and rewriting | 11 | `redact`, `redact_header`, `redact_query_param`, `redact_json_field`, `redact_whole_tape`, `redact_whole_tape_described`, `unredact`, `remove_header`, `substitute`, `redact_credentials`, `redact_credential_header` |
+    | Header presets | 4 | `strict_ignore_common_headers`, `ignore_volatile_headers`, `remove_transport_headers`, `remove_cloud_headers` |
+    | Volatile values | 5 | `volatile_rule`, `volatile_bind`, `volatile_profile`, `set_volatile_markers`, `volatile_report` |
+    | Named secrets | 7 | `secret_begin`, `_next`, `_get`, `_interaction`, `_apply`, `_finish`, `_abort` |
+    | Record options | 9 | `set_upstream_cafile`, `set_forward_host`, `set_rewrite_upstream_base`, `get_rewrite_upstream_base`, `add_license_notice`, `note`, `set_rules_footer`, `indent_code_blocks`, `emphasize_http_verbs` |
+    | Formatting and stable order | 12 | `set_pretty_json`/`get_`, `set_pretty_xml`/`get_`, `set_sort_json_keys`/`get_`, `sort_json_array`, `sort_json_array_at`, `set_sort_response_headers`/`get_`, `sort_header_value`, `clear_stable_order` |
+    | Playback matching | 8 | `set_strict_headers`, `set_match_multiple`, `match_header`, `clear_match_headers`, `set_playback_range`, `clear_playback_range`, `get_playback_range_from`, `get_playback_range_to` |
+    | Static and untaped paths | 2 | `static_content`, `untaped` |
+    | Resets | 7 | `clear_redactions`, `clear_unredactions`, `clear_header_removals`, `clear_static_content`, `clear_untaped`, `clear_format_options`, `clear_substitutions` |
+    | Converters and tools (no handle) | 3 | `har_import`, `har_export`, `convert_bru` |
+    | String ownership | 1 | `free_string` |
+
+    The three **tools** are file-to-file: `har_import` turns a HAR 1.2 capture into a tape, `har_export` is its inverse, and `convert_bru` converts a Bruno collection's examples into tapes (a summary lands in `CONVERSION.md`). The standalone `servirtium` CLI links the same core directly.
+
+    **Library lookup.** Bindings that load the library at run time find it via `SERVIRTIUM_VCR_LIB` (an absolute path), a `native/` directory beside the binding, or the OS loader; link-time bindings bake the path in. Build the library yourself with `ae build --emit=lib --with=fs,net,extern core/embed.ae --extra core/_embed_strdup.c`, or take the per-platform release library. Rust's `src/native.rs` is the canonical 1:1 symbol table.
+  docs:
+  - core/embed.ae
+  - AGENTS.md
+  - README.md
+  tests:
+  - core_tests/test_vcr_har_import.ae
+  - core_tests/test_vcr_har_export.ae
+  - core_tests/test_vcr_bru_convert.ae
+  - core_tests/test_vcr_concurrent_config.ae
+  bindings: every binding wraps a subset; none wraps all 99 (forward_host and the
+    recording-rules footer are the thinnest)
