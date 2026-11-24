@@ -12,6 +12,12 @@
   tpl: demos.html
   css: project
 
+- id: usage
+  i18n: nav.usage
+  name: Usage
+  tpl: usage.html
+  css:
+
 - id: markdown-format
   i18n: nav.markdown-format
   name: Markdown Format

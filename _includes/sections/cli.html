@@ -7,7 +7,7 @@
       <strong class="font-semibold text-slate-800 dark:text-slate-100"><code>servirtium</code> CLI</strong> —
       a single self-contained binary with the whole engine linked in. No language binding, no shared library,
       no runtime: a committed tape becomes a live stub server with one command, and tapes can be linted and
-      converted from the shell or a CI step.
+      converted from the shell or a CI step, including from HAR captures and Bruno collections.
     </p>
   </div>
 
@@ -30,7 +30,13 @@
 <span class="block">servirtium check --canonical tapes/*.md</span>
 <span class="block text-slate-400 dark:text-slate-500">&#160;</span>
 <span class="block text-slate-400 dark:text-slate-500"># capture in Chrome DevTools, convert once, replay forever</span>
-<span class="block">servirtium import capture.har tapes/from_browser.md</span></pre>
+<span class="block">servirtium import capture.har tapes/from_browser.md</span>
+<span class="block text-slate-400 dark:text-slate-500">&#160;</span>
+<span class="block text-slate-400 dark:text-slate-500"># turn a Bruno collection's saved examples into tapes (no network)</span>
+<span class="block">servirtium convert bru ./api-collection tapes/from-bruno</span>
+<span class="block text-slate-400 dark:text-slate-500">&#160;</span>
+<span class="block text-slate-400 dark:text-slate-500"># or fire its requests at the real service and record the answers</span>
+<span class="block">servirtium import-bru ./api-collection https://api.example.test tapes/hydrated.md</span></pre>
   </div>
 
   <!-- Subcommand cards -->
@@ -63,13 +69,29 @@
       </p>
     </div>
     <div class="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+      <p class="font-mono text-sm font-semibold text-brand-600 dark:text-brand-400">convert bru &lt;collection&gt; &lt;out-dir&gt; [--env NAME]</p>
+      <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">
+        Converts the saved examples of a <a href="https://www.usebruno.com/">Bruno</a> collection into tapes, with no
+        network: one tape per request, one interaction per example, at a space-free path, with a
+        <code>CONVERSION.md</code> listing what became what. Credentials are never written, and where an example
+        documents no response body the note says so. <code>.bru</code> files are read by Bruno's own parser.
+      </p>
+    </div>
+    <div class="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+      <p class="font-mono text-sm font-semibold text-brand-600 dark:text-brand-400">import-bru &lt;collection&gt; &lt;upstream&gt; &lt;out.md&gt;</p>
+      <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">
+        Imports a Bruno collection and hydrates it: every request is fired through record mode at the real
+        <code>&lt;upstream&gt;</code>, and the live responses become a replayable tape. It makes real calls (side effects on
+        POST, PUT and DELETE), so point it at a service you mean to hit.
+      </p>
+    </div>
+    <div class="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
       <p class="font-mono text-sm font-semibold text-brand-600 dark:text-brand-400">one static binary</p>
       <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">
-        The CLI statically links the same pure-Aether engine the seventeen bindings share — same parser, same
+        The CLI statically links the same pure-Aether engine the thirty languages share — same parser, same
         matcher, same emitter — so what <code>serve</code> replays and what <code>check</code> accepts is
-        exactly what your tests see. Built by the monorepo's one-command
-        <a href="https://github.com/servirtium/servirtium-vcr#build-aeb"><code>bootstrap.sh</code></a>
-        alongside the engine.
+        exactly what your tests see. It is not a release download yet: build it from a checkout with
+        <a href="https://github.com/servirtium/servirtium-vcr#build-aeb"><code>aeb core/.cli.ae</code></a>.
       </p>
     </div>
   </div>

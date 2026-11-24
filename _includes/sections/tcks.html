@@ -188,6 +188,13 @@
 </svg>
                 </div>
                 <p>
+                    In servirtium-vcr you don't need the shell script for the record-mode job: <em>fail-if-changed</em> is a setting on the
+                    recorder. A re-record still writes the tape, but committing it raises an error if it differs from the one in Git, so the
+                    job fails and <code>git diff</code> shows the drift. Per-run noise (generated ids, timestamps) is handled by
+                    <a href="/features/#volatile-values">volatile-value rules</a>, so only real changes count. See
+                    <a href="/features/#drift-detection">drift detection</a>.
+                </p>
+                <p>
                     Oh and yes, a Markdown representation of one or more HTTP interactions is the easiest for seeing
                     differences in a changed recording. That is because XML and JSON payloads sit in Markdown code
                     fences, where they stay pretty-printed and verbatim. There's none of the escaping you'd get from

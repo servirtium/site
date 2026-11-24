@@ -20,6 +20,12 @@ from where Servirtium's shape is a strength Postman *structurally can't copy*:
 - it's **plain Markdown in Git** — diffable, reviewable, renders on the portal;
 - it's the artifact teams **already review** in PRs.
 
+> **Status, 2026-11-24 (facts only):** the standalone `servirtium` CLI now has
+> `import <in.har> <out.md>` and `export <in.md> <out.har>` (the HAR bridge),
+> `convert bru` and `import-bru` (Bruno collections), and `serve <tape.md>`
+> (a local stub server from a tape). There is no Postman-collection importer;
+> a Postman session reaches Servirtium by exporting to HAR first.
+
 ## The two bets we're pursuing
 
 Chosen directions: **mock-from-reality** (the differentiated product) and the

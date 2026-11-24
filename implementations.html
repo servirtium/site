@@ -19,7 +19,7 @@ desc: Independent and earlier per-language Servirtium implementations.
     <a href="https://www.http4k.org/">http4k</a> toolkit — demo:
     <a href="https://github.com/http4k/servirtium-demo-kotlin-climate-tck">servirtium-demo-kotlin-climate-tck</a>
     (Kotlin and Java/JUnit5), and
-    <a href="https://github.com/servirtium/jbehave-servirtium-climate-tck-demo">jbehave-servirtium-climate-tck-demo</a> (JBehave).
+    <a href="https://github.com/servirtium/archive-jbehave-servirtium-climate-tck-demo">jbehave-servirtium-climate-tck-demo</a> (JBehave).
   </p>
   <p class="mt-3 text-slate-600 dark:text-slate-400">
     Servirtium also began life as standalone per-language libraries, most now folded into
@@ -37,12 +37,12 @@ desc: Independent and earlier per-language Servirtium implementations.
         </tr>
       </thead>
       <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
-        {% assign earlier = "JavaScript & TypeScript|archive-servirtium-javascript|Duong Pham;.NET|archive-servirtium-dotnet|Stephen Hand;Go|archive-servirtium-go|Duong Pham;Python|archive-servirtium-python|Steve Freeman, Yogesh Naik & Ross Fung;Ruby|archive-servirtium-ruby|Rob Park;Dart (and Flutter)|archive-servirtium-dart|Khaleel Shaheen & Hemanth Raj V;Rust|archive-servirtium-rust|Denis Karpovskiy;Elixir|servirtium-elixir|Josh Price;Haskell|archive-servirtium-haskell|Charlie Austin;Java (original)|archive-servirtium-java|Paul Hammant" | split: ";" %}
+        {% assign earlier = "JavaScript & TypeScript|archive-servirtium-javascript|Duong Pham;.NET|archive-servirtium-dotnet|Stephen Hand;Go|archive-servirtium-go|Duong Pham;Python|archive-servirtium-python|Steve Freeman, Yogesh Naik & Ross Fung;Ruby|archive-servirtium-ruby|Rob Park;Dart (and Flutter)|archive-servirtium-dart|Khaleel Shaheen & Hemanth Raj V;Rust|archive-servirtium-rust|Denis Karpovskiy;Elixir|servirtium-elixir (no longer hosted in the org)|Josh Price;Haskell|archive-servirtium-haskell|Charlie Austin;Java (original)|archive-servirtium-java|Paul Hammant" | split: ";" %}
         {% for e in earlier %}
           {% assign parts = e | split: "|" %}
           <tr class="bg-white dark:bg-slate-900">
             <th scope="row" class="px-4 py-3 font-semibold text-slate-900 dark:text-white">{{ parts[0] }}</th>
-            <td class="px-4 py-3"><a class="font-mono text-xs" href="https://github.com/servirtium/{{ parts[1] }}">{{ parts[1] }}</a></td>
+            <td class="px-4 py-3">{% if parts[1] contains "archive-" %}<a class="font-mono text-xs" href="https://github.com/servirtium/{{ parts[1] }}">{{ parts[1] }}</a>{% else %}<span class="font-mono text-xs">{{ parts[1] }}</span>{% endif %}</td>
             <td class="px-4 py-3 text-slate-600 dark:text-slate-400">{{ parts[2] }}</td>
           </tr>
         {% endfor %}

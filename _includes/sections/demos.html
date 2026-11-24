@@ -6,55 +6,120 @@
       <a href="https://github.com/servirtium/servirtium-vcr">servirtium-vcr</a> is the current direction for
       Servirtium. Instead of a separate re-implementation per language, there is a single record/replay
       <strong class="font-semibold text-slate-800 dark:text-slate-100">engine</strong> — Markdown
-      parser/emitter, HTTP server, request matching, redaction, whole-tape normalization and drift detection —
-      built once as a native shared library, with a
-      <strong class="font-semibold text-slate-800 dark:text-slate-100">thin FFI binding per language</strong> on top.
+      parser/emitter, HTTP server, request matching, redaction, volatile-value handling and drift
+      detection — written once in <a href="https://github.com/aether-lang-dev/aether">Aether</a>, a language
+      that compiles to C, and built as a native shared library with a plain C ABI. A
+      <strong class="font-semibold text-slate-800 dark:text-slate-100">thin FFI binding per language</strong> sits on top.
     </p>
     <p class="mt-4 text-slate-600 dark:text-slate-300">
       Because every language drives the <em>same</em> engine, cross-language compatibility is a
       <strong class="font-semibold text-slate-800 dark:text-slate-100">build-time guarantee</strong>, not something
-      each library re-derives and drifts on. One monorepo, seventeen bindings, one build.
+      each library re-derives and drifts on. Bindings carry no logic of their own. One monorepo, thirty languages
+      (twenty-five native bindings plus Kotlin, Scala, Clojure, Groovy and F#, which ride on a sibling's), one build. The current release is
+      <a href="https://github.com/servirtium/servirtium-vcr/releases/tag/v2.0.0-alpha.20"><code>2.0.0-alpha.20</code></a>.
     </p>
   </div>
 
   <!-- Bindings table -->
-  <div class="mx-auto mt-12 max-w-4xl overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800">
-    <table class="w-full text-left text-sm">
+  <div class="mx-auto mt-12 max-w-5xl overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
+    <table class="w-full min-w-[40rem] text-left text-sm">
       <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-800/60 dark:text-slate-400">
         <tr>
           <th class="px-4 py-3 font-semibold">Language</th>
           <th class="px-4 py-3 font-semibold">Binding mechanism</th>
+          <th class="px-4 py-3 font-semibold">How you get it today</th>
           <th class="px-4 py-3 font-semibold">In the monorepo</th>
         </tr>
       </thead>
       <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
-        {% assign bindings = "Go|cgo|go;Python|ctypes|python;Java|FFM / Panama (JDK 22+)|java;.NET|P/Invoke|dotnet;Rust|libloading|rust;Ruby|Fiddle|ruby;JavaScript & TypeScript|koffi (Node)|javascript;Dart (and Flutter)|dart:ffi|dart;PHP|ext-ffi|php;Haskell|foreign import ccall|haskell;Elixir|shares the Erlang NIF (BEAM)|elixir;Pharo (Smalltalk)|UnifiedFFI|pharo;Nim|importc (linked)|nim;Zig|extern C (linked)|zig;Lua|C extension (Lua 5.4)|lua;Erlang|C NIF (canonical, shared)|erlang;Gleam|shares the Erlang NIF (BEAM)|gleam" | split: ";" %}
+        {% assign bindings = "Go|cgo|Go module at the release tag, plus the native library from the release|go;Python|ctypes|pip install of the tag's python/ subdirectory, plus the native library (not the PyPI package of the same name, which is the old 1.x)|python;Java|FFM / Panama (JDK 22+)|fat jar from the release, installed into ~/.m2 as dev.servirtium:vcr (six natives inside)|java;.NET|P/Invoke|Servirtium.Vcr .nupkg from the release as a local NuGet feed (net8.0 and net48, natives inside)|dotnet;Rust|libloading|git dependency at the release tag, plus the native library|rust;Ruby|Fiddle|Bundler git source at the release tag, plus the native library|ruby;JavaScript & TypeScript|koffi (Node 22+)|npm tarball from the release (eight natives inside)|javascript;Dart (and Flutter)|dart:ffi|pub git dependency at the release tag, plus the native library|dart;PHP|ext-ffi (PHP 8.2+)|Composer path repository onto php/ of a checkout|php;Haskell|foreign import ccall|cabal source-repository-package, plus the native library|haskell;Elixir|shares the Erlang NIF (BEAM)|Mix, over the shared servirtium_nif app built from the release library|elixir;Pharo (Smalltalk)|UnifiedFFI|Metacello from the release tag, plus the native library|pharo;Nim|importc (linked)|the tag as source on --path, native library linked|nim;Zig|extern C (linked)|the package as source, native library linked|zig;Lua|C extension (Lua 5.4)|source plus a C extension compiled against the release library|lua;Erlang|C NIF (canonical, shared)|servirtium_nif and servirtium_erl built by erlang/build-nif-app.sh|erlang;Gleam|shares the Erlang NIF (BEAM)|path dependency, over the shared servirtium_nif app|gleam;LFE|shares the Erlang NIF (BEAM)|rebar3 project, over the shared servirtium_nif app|lfe;C|the C ABI directly (header + link)|servirtium.h and servirtium.c from the tag, native library linked|c;C++|header-only RAII wrapper over the C client|servirtium.hpp plus the C client, native library linked|cpp;Crystal|@[Link] + lib (linked)|shards, from the repository at the release tag|crystal;D|extern(C) (linked)|dub, from the repository at the release tag|d;Julia|ccall|Pkg.add by URL at the release tag, plus the native library|julia;Janet|built-in FFI (ffi/native)|jpm install from the repository at the release tag|janet;Swift|C interop via a module map|SwiftPM from: 2.0.0-alpha.20 (the release's artifact bundle; Swift 6.2+, macOS and Linux glibc)|swift" | split: ";" %}
         {% for b in bindings %}
           {% assign parts = b | split: "|" %}
           <tr class="bg-white transition hover:bg-brand-50/50 dark:bg-slate-900 dark:hover:bg-slate-800/50">
-            <th scope="row" class="px-4 py-3 font-semibold text-slate-900 dark:text-white">{{ parts[0] }}</th>
+            <th scope="row" class="px-4 py-3 font-semibold text-slate-900 dark:text-white"><a href="{{ '/languages/' | append: parts[3] | append: '/' | prepend: site.baseurl }}">{{ parts[0] }}</a></th>
             <td class="px-4 py-3 text-slate-600 dark:text-slate-400">{{ parts[1] }}</td>
-            <td class="px-4 py-3"><a class="font-mono text-xs" href="https://github.com/servirtium/servirtium-vcr/tree/main/{{ parts[2] }}">{{ parts[2] }}/</a></td>
+            <td class="px-4 py-3 text-slate-600 dark:text-slate-400">{{ parts[2] }}</td>
+            <td class="px-4 py-3"><a class="font-mono text-xs" href="https://github.com/servirtium/servirtium-vcr/tree/main/{{ parts[3] }}">{{ parts[3] }}/</a></td>
           </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
   <p class="mx-auto mt-4 max-w-4xl text-center text-sm text-slate-500 dark:text-slate-400">
-    The seventeen bindings build and test through one
-    <a href="https://github.com/aether-lang-org/aeb">aeb</a> run against the shared
-    <code>libservirtium_vcr.so</code>. See the
-    <a href="https://github.com/servirtium/servirtium-vcr#bindings">monorepo README</a> for per-language quick-starts.
+    Each language has its own page with exact install steps, copyable record and playback snippets and a prompt for your coding agent: see
+    <a href="{{ '/languages/' | prepend: site.baseurl }}">all thirty languages</a>. All of them build and test through one
+    <a href="https://github.com/aether-lang-dev/aeb">aeb</a> run against the shared
+    <code>libservirtium_vcr</code>. Each binding's README has a runnable "Getting it" recipe and quick-start; see the
+    <a href="https://github.com/servirtium/servirtium-vcr#bindings">monorepo README</a>.
   </p>
 
-  <!-- JVM callout -->
-  <div class="mx-auto mt-8 max-w-4xl rounded-xl border border-brand-200 bg-brand-50 p-5 dark:border-brand-900 dark:bg-brand-950/40">
-    <p class="text-sm text-slate-700 dark:text-slate-300">
-      On the JVM, the Java binding also serves <strong>Kotlin, Scala, Clojure and Groovy</strong> — thin idiomatic
-      layers (a Kotlin trailing-lambda DSL, a Groovy <code>Closure</code> DSL, Scala helpers, Clojure fns +
-      <code>with-open</code>) over the same jar, with no second native FFI.
-    </p>
+  <!-- JVM / CLR callouts -->
+  <div class="mx-auto mt-8 grid max-w-4xl gap-4 md:grid-cols-2">
+    <div class="rounded-xl border border-brand-200 bg-brand-50 p-5 dark:border-brand-900 dark:bg-brand-950/40">
+      <p class="text-sm text-slate-700 dark:text-slate-300">
+        <strong>JVM family.</strong> The Java binding's jar also serves <strong>Kotlin, Scala, Clojure and Groovy</strong> —
+        thin idiomatic layers (a Kotlin trailing-lambda DSL, a Groovy <code>Closure</code> DSL, Scala helpers, Clojure fns +
+        <code>with-open</code>) over the same jar, with no second native FFI.
+      </p>
+    </div>
+    <div class="rounded-xl border border-brand-200 bg-brand-50 p-5 dark:border-brand-900 dark:bg-brand-950/40">
+      <p class="text-sm text-slate-700 dark:text-slate-300">
+        <strong>CLR family.</strong> <strong>F#</strong> uses the same .NET package through ordinary .NET interop, with
+        loan-pattern combinators on top. The BEAM languages (Erlang, Elixir, Gleam, LFE) share one NIF, so a runtime
+        family only has to be bridged once.
+      </p>
+    </div>
   </div>
+
+  <!-- Platforms and install routes -->
+  <div class="mx-auto mt-14 max-w-4xl">
+    <h3 class="text-center text-2xl font-bold text-slate-900 dark:text-white">Platforms and packages</h3>
+    <p class="mx-auto mt-3 max-w-2xl text-center text-slate-600 dark:text-slate-300">
+      Every release is cross-built from one Linux host and published on GitHub by Actions, with a <code>.sha256</code>
+      beside each file. Nothing is on a language registry yet (PyPI's <code>servirtium</code> is the old 1.x package),
+      so the install routes are the release assets and tags below.
+    </p>
+    <div class="mt-8 grid gap-4 md:grid-cols-2">
+      <div class="card">
+        <h4 class="font-semibold text-slate-900 dark:text-white">Native libraries</h4>
+        <ul class="mt-2 space-y-1 text-sm text-slate-600 dark:text-slate-400">
+          <li>Linux x86_64 and arm64, glibc and musl</li>
+          <li>macOS x86_64 and arm64</li>
+          <li>Windows x86_64 and arm64 (no 32-bit engine)</li>
+          <li>FreeBSD x86_64</li>
+        </ul>
+        <p class="mt-3 text-sm text-slate-600 dark:text-slate-400">
+          Named <code>libservirtium_vcr-&lt;tag&gt;-&lt;os&gt;-&lt;arch&gt;[-musl].{so,dylib,dll}</code>. Most bindings load
+          the one for your machine through <code>SERVIRTIUM_VCR_LIB</code>; the bundled packages find it themselves.
+        </p>
+      </div>
+      <div class="card">
+        <h4 class="font-semibold text-slate-900 dark:text-white">Multi-platform packages on the release page</h4>
+        <ul class="mt-2 space-y-1 text-sm text-slate-600 dark:text-slate-400">
+          <li><strong>Java:</strong> <code>servirtium-vcr-&lt;ver&gt;.jar</code>, six natives inside (not musl or FreeBSD)</li>
+          <li><strong>.NET:</strong> <code>Servirtium.Vcr.&lt;ver&gt;.nupkg</code>, eight runtimes inside, for net8.0 and .NET Framework 4.8</li>
+          <li><strong>Node:</strong> <code>servirtium-vcr-&lt;ver&gt;.tgz</code>, eight natives inside</li>
+          <li><strong>Swift:</strong> an artifact bundle of static libraries (macOS, Linux glibc) that the repository's <code>Package.swift</code> downloads for you</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card mt-4">
+      <h4 class="font-semibold text-slate-900 dark:text-white">Any other language: <code>get-package.sh</code></h4>
+      <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">
+        One script, one language name, and you get the artifact your tooling expects with the engine already inside
+        it: a wheel, gem, npm tarball, NuGet feed, jar, a relocatable tarball with a pkg-config file, or a source
+        package with the library staged in. It installs the pinned toolchain first and runs no tests.
+      </p>
+<pre class="mt-3 overflow-x-auto rounded-lg bg-slate-50 p-3 font-mono text-[12.5px] leading-6 text-slate-800 dark:bg-slate-950 dark:text-slate-200">curl -fsSL https://raw.githubusercontent.com/servirtium/servirtium-vcr/main/get-package.sh | sh -s -- ruby
+# -&gt; out/ruby/servirtium.gem, and the gem install line to run</pre>
+    </div>
+  </div>
+
+  <p class="mx-auto mt-10 max-w-4xl text-center text-slate-600 dark:text-slate-300">
+    Adding Servirtium to an existing project with a coding agent? Paste the
+    <a href="{{ '/agent-prompt/' | prepend: site.baseurl }}">ready-made prompt</a>. Agents can also start from
+    <a href="{{ '/llms.txt' | prepend: site.baseurl }}">llms.txt</a>.
+  </p>
 
   <!-- Earlier implementations (moved to its own page) -->
   <p class="mx-auto mt-12 max-w-4xl text-center text-sm text-slate-500 dark:text-slate-400">

@@ -163,6 +163,19 @@
                 block may be reformatted depending on the settings of the recorder. If binary, then there is a Base64
                 sequence instead (admittedly not so pretty on the eye).</p>
 
+            <h3><a id="user-content-more-on-a-tape" class="anchor" aria-hidden="true"
+                   href="#more-on-a-tape"><span style="font-size: 65%">🔗</span></a> What else can be on a tape</h3>
+            <p>Beyond the interactions, a tape written by servirtium-vcr can carry a few more sections, each opt-in. Playback tolerates all of them, and readers that predate them skip them.</p>
+            <ul>
+                <li><code>## LICENSE NOTICE</code> &mdash; plain text at the top of the tape, before <code>## Interaction 0</code>: the recorded service's licence terms. Playback ignores the text.</li>
+                <li><code>## Volatile values</code> &mdash; the rules that turn per-run values (ids, timestamps, <code>Date</code> headers) into tokens such as <code>{% raw %}{{messageId-1}}{% endraw %}</code>, so a re-record of an unchanged conversation is byte-identical. The rules travel in the tape, so it replays with no rules in code.</li>
+                <li><code>## [Note] &lt;title&gt;:</code> &mdash; a note between interactions, written by the test for the human reading the tape.</li>
+                <li><code>## [Recording rules]</code> &mdash; a closing table of what the test asked the recorder to leave out or rewrite (removed headers, redactions), so a reader sees why a header is missing. The parser stops at this heading by design.</li>
+                <li><code>{% raw %}{{baseUrl}}{% endraw %}</code>, <code>{% raw %}{{request.host}}{% endraw %}</code> and <code>{% raw %}{{request.scheme}}{% endraw %}</code> &mdash; the VCR's own address, filled from the live request at playback, so a tape replays on any port. Credentials appear as numbered tokens such as <code>Bearer AUTHORIZATION_1</code> when the recorder redacted them.</li>
+                <li>Bodies are byte-exact. A binary body is a Base64 block; JSON and XML bodies can be indented for reading (<code>pretty_json</code>, <code>pretty_xml</code>); gzip and chunked transfer are decoded to the stored payload.</li>
+            </ul>
+            <p>The <a href="/features/#tape-format">feature reference</a> has the details, and tapes belong in version control without line-ending conversion (<code>*.md -text</code> in <code>.gitattributes</code> for the tape directory).</p>
+
             <h2><a id="user-content-discussing-recording-and-playback" class="anchor" aria-hidden="true"
                    href="#discussing-recording-and-playback"><span style="font-size: 65%">🔗</span></a>
                 Recording and Playback</h2>
@@ -175,7 +188,8 @@
                 recording you will swap the real service URL for one running a Servirtium middle-man server (which
                 itself will delegate to
                 the real service). If that service is flaky - keep re-running the test manually until the service is
-                non-flaky, and commit
+                non-flaky, then commit the recording (<code>Commit()</code>; <code>Discard()</code> if the test failed &mdash; a
+                recording that is neither committed nor discarded writes no tape and raises an error) and commit
                 that Servirtium-style markdown to source-control. Best practice is to configure the same test to have
                 two modes of operation: 'direct' and 'recording' modes.  This is <strong>not</strong> a caching idea
                 - it is deliberate
@@ -191,7 +205,7 @@
             <p>Playback itself will fail if the headers/body <strong>sent by the client to the real service</strong>
                 (through the Servirtium library)
                 are <strong>not</strong> the same they were when the recording was made. It is possible that
-                masking/redacting and general manipulations should happen
+                masking/redacting (<code>redact_credentials</code>, structured redaction, volatile-value rules) and general manipulations should happen
                 deliberately during the recording to get rid of transient aspects that are not helpful in playback
                 situations. The test
                 failing in this situation is deliberate - you're using this to guard against potential

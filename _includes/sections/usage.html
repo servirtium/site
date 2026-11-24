@@ -1,0 +1,212 @@
+<div class="section">
+  <div class="mx-auto max-w-3xl text-center">
+    <p class="eyebrow">Using it</p>
+    <h2 class="mt-3 text-3xl font-bold tracking-tight text-slate-900 dark:text-white md:text-4xl">Record once, commit, replay</h2>
+    <p class="mt-5 text-lg text-slate-600 dark:text-slate-300">
+      Your system under test only needs one thing: the VCR's base URL. In
+      <strong class="font-semibold text-slate-800 dark:text-slate-100">record</strong> mode the VCR forwards to the real
+      service and hands back the real response; in
+      <strong class="font-semibold text-slate-800 dark:text-slate-100">playback</strong> mode it answers from the tape
+      with no network. The API is the same fluent builder in every language, in that language's own spelling.
+    </p>
+  </div>
+
+  <!-- Python: playback + record -->
+  <div class="mx-auto mt-10 grid max-w-5xl gap-5 md:grid-cols-2">
+    <div class="overflow-hidden rounded-xl border border-slate-200 shadow-sm dark:border-slate-800">
+      <div class="border-b border-slate-200 bg-slate-50 px-4 py-2 font-mono text-xs text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">Python &mdash; playback</div>
+<pre class="overflow-x-auto bg-white p-4 text-left font-mono text-[12.5px] leading-6 text-slate-800 dark:bg-slate-950 dark:text-slate-200"><span class="block">import servirtium, urllib.request</span>
+<span class="block">&#160;</span>
+<span class="block">with servirtium.playback("tapes/climate_api.md") \</span>
+<span class="block">        .redact_credentials().pretty_json() \</span>
+<span class="block">        .port(0).start() as vcr:</span>
+<span class="block">    body = urllib.request.urlopen(</span>
+<span class="block">        f"{vcr.base_url}/api/v1/countries").read()</span>
+<span class="block">    assert vcr.last_kind is servirtium.Outcome.OK</span></pre>
+    </div>
+    <div class="overflow-hidden rounded-xl border border-slate-200 shadow-sm dark:border-slate-800">
+      <div class="border-b border-slate-200 bg-slate-50 px-4 py-2 font-mono text-xs text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">Python &mdash; record</div>
+<pre class="overflow-x-auto bg-white p-4 text-left font-mono text-[12.5px] leading-6 text-slate-800 dark:bg-slate-950 dark:text-slate-200"><span class="block">with servirtium.record("tapes/climate_api.md",</span>
+<span class="block">        "https://climatedataapi.worldbank.org") \</span>
+<span class="block">        .redact_credentials().pretty_json() \</span>
+<span class="block">        .port(0).start() as vcr:</span>
+<span class="block">    urllib.request.urlopen(</span>
+<span class="block">        f"{vcr.base_url}/api/v1/countries").read()</span>
+<span class="block">    vcr.commit()   # only a commit writes the tape</span></pre>
+    </div>
+  </div>
+
+  <!-- Commit / discard -->
+  <div class="mx-auto mt-6 max-w-4xl rounded-xl border border-brand-200 bg-brand-50 p-5 dark:border-brand-900 dark:bg-brand-950/40">
+    <p class="text-sm text-slate-700 dark:text-slate-300">
+      <strong>A recording is written only by <code>Commit()</code>.</strong> <code>Discard()</code> drops it. Closing,
+      disposing or dropping a record VCR with neither writes no tape and raises (Python's <code>VcrError</code>,
+      .NET's and Java's <code>VcrException</code>, an error from Go's <code>Close()</code> and Rust's <code>close()</code>,
+      and so on), so a test that fails part-way can no longer mint a tape that later replays as the truth. The scoped
+      helpers in each language discard the recording when their block raises. Playback is unchanged: closing just stops it.
+    </p>
+  </div>
+
+  <!-- Record in other languages -->
+  <div class="mx-auto mt-10 max-w-5xl">
+    <h3 class="text-center text-xl font-bold text-slate-900 dark:text-white">The same record call, elsewhere</h3>
+    <div class="mt-6 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+      <div class="overflow-hidden rounded-xl border border-slate-200 shadow-sm dark:border-slate-800">
+        <div class="border-b border-slate-200 bg-slate-50 px-4 py-2 font-mono text-xs text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">Java</div>
+<pre class="overflow-x-auto bg-white p-4 text-left font-mono text-[12.5px] leading-6 text-slate-800 dark:bg-slate-950 dark:text-slate-200"><span class="block">try (VcrServer vcr = Vcr.record(</span>
+<span class="block">        "tapes/climate_api.md", upstream)</span>
+<span class="block">        .redactCredentials().start()) {</span>
+<span class="block">    callTheService(vcr.baseUrl());</span>
+<span class="block">    vcr.commit();</span>
+<span class="block">}</span></pre>
+      </div>
+      <div class="overflow-hidden rounded-xl border border-slate-200 shadow-sm dark:border-slate-800">
+        <div class="border-b border-slate-200 bg-slate-50 px-4 py-2 font-mono text-xs text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">C# (.NET 8 or Framework 4.8)</div>
+<pre class="overflow-x-auto bg-white p-4 text-left font-mono text-[12.5px] leading-6 text-slate-800 dark:bg-slate-950 dark:text-slate-200"><span class="block">using var vcr = Vcr.Record(</span>
+<span class="block">        "tapes/climate_api.md", upstream)</span>
+<span class="block">    .RedactCredentials().Port(0).Start();</span>
+<span class="block">&#160;</span>
+<span class="block">await CallTheService(vcr.BaseUrl);</span>
+<span class="block">vcr.Commit();   // Discard() on failure</span></pre>
+      </div>
+      <div class="overflow-hidden rounded-xl border border-slate-200 shadow-sm dark:border-slate-800">
+        <div class="border-b border-slate-200 bg-slate-50 px-4 py-2 font-mono text-xs text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">Go</div>
+<pre class="overflow-x-auto bg-white p-4 text-left font-mono text-[12.5px] leading-6 text-slate-800 dark:bg-slate-950 dark:text-slate-200"><span class="block">srv, err := servirtium.Record(</span>
+<span class="block">    "tapes/climate_api.md", upstream).</span>
+<span class="block">    RedactCredentials().Start()</span>
+<span class="block">if err != nil { t.Fatal(err) }</span>
+<span class="block">callTheService(srv.BaseURL())</span>
+<span class="block">if err := srv.Commit(); err != nil { t.Fatal(err) }</span></pre>
+      </div>
+      <div class="overflow-hidden rounded-xl border border-slate-200 shadow-sm dark:border-slate-800">
+        <div class="border-b border-slate-200 bg-slate-50 px-4 py-2 font-mono text-xs text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">Rust</div>
+<pre class="overflow-x-auto bg-white p-4 text-left font-mono text-[12.5px] leading-6 text-slate-800 dark:bg-slate-950 dark:text-slate-200"><span class="block">let rec = Vcr::record("tapes/climate_api.md", upstream)</span>
+<span class="block">    .redact_credentials().port(0).start().unwrap();</span>
+<span class="block">call_the_service(rec.base_url());</span>
+<span class="block">rec.commit().unwrap();   // or rec.discard()</span></pre>
+      </div>
+      <div class="overflow-hidden rounded-xl border border-slate-200 shadow-sm dark:border-slate-800">
+        <div class="border-b border-slate-200 bg-slate-50 px-4 py-2 font-mono text-xs text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">JavaScript / TypeScript</div>
+<pre class="overflow-x-auto bg-white p-4 text-left font-mono text-[12.5px] leading-6 text-slate-800 dark:bg-slate-950 dark:text-slate-200"><span class="block">const vcr = Vcr.record('tapes/climate_api.md', upstream)</span>
+<span class="block">  .redactCredentials().port(0).start()</span>
+<span class="block">try {</span>
+<span class="block">  await callTheService(vcr.baseUrl)</span>
+<span class="block">  vcr.commit()</span>
+<span class="block">} catch (e) { vcr.discard(); throw e }</span></pre>
+      </div>
+      <div class="overflow-hidden rounded-xl border border-slate-200 shadow-sm dark:border-slate-800">
+        <div class="border-b border-slate-200 bg-slate-50 px-4 py-2 font-mono text-xs text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">Java &mdash; playback</div>
+<pre class="overflow-x-auto bg-white p-4 text-left font-mono text-[12.5px] leading-6 text-slate-800 dark:bg-slate-950 dark:text-slate-200"><span class="block">try (VcrServer vcr = Vcr.playback(</span>
+<span class="block">        "tapes/climate_api.md")</span>
+<span class="block">        .redactCredentials().port(0).start()) {</span>
+<span class="block">    callTheService(vcr.baseUrl());</span>
+<span class="block">    assertEquals(Outcome.OK, vcr.lastKind());</span>
+<span class="block">}</span></pre>
+      </div>
+    </div>
+    <p class="mt-4 text-center text-sm text-slate-500 dark:text-slate-400">
+      Each binding's README and <code>docs/usage.md</code> in the
+      <a href="https://github.com/servirtium/servirtium-vcr#bindings">monorepo</a> have the exact spelling for its language.
+    </p>
+  </div>
+
+  <!-- Feature cards -->
+  <div class="mx-auto mt-14 max-w-5xl">
+    <h3 class="text-center text-2xl font-bold text-slate-900 dark:text-white">What the engine does for you</h3>
+    <p class="mx-auto mt-3 max-w-2xl text-center text-slate-600 dark:text-slate-300">
+      One implementation behind every binding. The full list, with behaviour, defaults, examples and links to each feature's docs and tests, is the
+      <a href="{{ '/features/' | prepend: site.baseurl }}">feature reference</a>.
+    </p>
+    <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div class="card">
+        <h4 class="font-semibold text-slate-900 dark:text-white">Credentials stay off the tape</h4>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">
+          <code>RedactCredentials</code> turns <code>Authorization</code>, cookies and API-key headers into numbered
+          tokens (<code>Bearer AUTHORIZATION_1</code>, <code>COOKIE_1</code>) and matches them on presence in playback.
+          <code>RedactHeader</code>, <code>RedactQueryParam</code> and <code>RedactJsonField</code> name what else to
+          scrub, and named secret callbacks choose a token per request. The live test still sees the real bytes.
+        </p>
+      </div>
+      <div class="card">
+        <h4 class="font-semibold text-slate-900 dark:text-white">Volatile values</h4>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">
+          A rule such as <code>request body: &lt;a:MessageID&gt;urn:uuid:{% raw %}{{messageId}}{% endraw %}&lt;/a:MessageID&gt;</code>
+          turns ids, timestamps and <code>Date</code> headers into tokens (<code>{% raw %}{{messageId-1}}{% endraw %}</code>), so a re-record of an
+          unchanged conversation is byte-identical. Playback matches any live value there and echoes it back
+          where the token reappears. The rules ride in the tape's own <code>## Volatile values</code> block.
+        </p>
+      </div>
+      <div class="card">
+        <h4 class="font-semibold text-slate-900 dark:text-white">The VCR's own address</h4>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">
+          <code>{% raw %}{{baseUrl}}{% endraw %}</code>, <code>{% raw %}{{request.host}}{% endraw %}</code> and <code>{% raw %}{{request.scheme}}{% endraw %}</code> are filled from the live
+          request, in responses and now in requests too, so a tape replays on any port. In record mode,
+          <code>RewriteUpstreamBase</code> keeps a service that writes its own absolute URLs
+          (TFS's location service, a HATEOAS API, a paging <code>nextLink</code>) from sending the client around the recorder.
+        </p>
+      </div>
+      <div class="card">
+        <h4 class="font-semibold text-slate-900 dark:text-white">Substitution and placeholders</h4>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">
+          <code>Substitute</code> rewrites a value in the replayed response (a marker of your own, such as a vault host, filled
+          at playback; .NET's <code>Placeholder</code> does the request and response sides of one marker in a call), and <code>Unredact</code> restores a scrubbed request value before matching, so a committed tape still
+          meets the test's real credential.
+        </p>
+      </div>
+      <div class="card">
+        <h4 class="font-semibold text-slate-900 dark:text-white">Readable bodies, stable order</h4>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">
+          <code>PrettyJson(n)</code> and <code>PrettyXml(n)</code> indent recorded bodies and canonicalize them for
+          matching. Opt-in stable order sorts JSON keys, chosen arrays and response headers for services that answer
+          in a different order each run, so a re-record is still byte-identical.
+        </p>
+      </div>
+      <div class="card">
+        <h4 class="font-semibold text-slate-900 dark:text-white">Matching and diagnostics</h4>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">
+          Strict method and path matching, opt-in header and body matching, order-independent
+          <code>MatchMultiple</code> replay, and a playback range that replays a slice of a long tape. A mismatch
+          report names the outcome, the closest candidate and the first real difference.
+        </p>
+      </div>
+      <div class="card">
+        <h4 class="font-semibold text-slate-900 dark:text-white">Drift detection</h4>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">
+          <em>Fail-if-changed</em>: a re-record writes the tape but flags any difference from the committed one, so CI
+          catches an upstream change as a Git diff and a failing build &mdash; the TCK idea, built in.
+        </p>
+      </div>
+      <div class="card">
+        <h4 class="font-semibold text-slate-900 dark:text-white">Windows authentication: NTLM and Negotiate</h4>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">
+          Record mode pairs each client connection with an upstream connection of its own, so connection-bound
+          authentication (NTLM, and Negotiate carrying NTLM, as with IIS, TFS, SharePoint and intranet WCF) records
+          correctly. Pre-recorded NTLM tapes show what each leg of the handshake looks like and which rules make it replay.
+        </p>
+      </div>
+      <div class="card">
+        <h4 class="font-semibold text-slate-900 dark:text-white">.NET Framework 4.8</h4>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">
+          The one NuGet package serves .NET 8 and .NET Framework 4.8, including <code>packages.config</code> projects, and
+          puts the right 64-bit engine (x64 or ARM64) in the output directory. A 32-bit build fails with a clear
+          error, because there is no 32-bit engine. The package's tests run on Framework 4.8 too.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pre-recorded tapes -->
+  <div class="mx-auto mt-14 max-w-4xl">
+    <h3 class="text-center text-2xl font-bold text-slate-900 dark:text-white">Tapes you can reuse</h3>
+    <p class="mx-auto mt-3 max-w-2xl text-center text-slate-600 dark:text-slate-300">
+      The repository's <a href="https://github.com/servirtium/servirtium-vcr/tree/main/pre-recorded"><code>pre-recorded/</code></a>
+      directory holds recordings of real services' HTTP APIs, for any language's tests (or for
+      <code>servirtium serve</code>), each with its licence and terms noted:
+    </p>
+    <ul class="mx-auto mt-4 max-w-2xl space-y-2 text-sm text-slate-600 dark:text-slate-400">
+      <li class="flex gap-2"><span class="text-brand-500">&middot;</span> <span><strong>sixty-five containerised services</strong> (Vault, Elasticsearch, MinIO, CouchDB and more), recorded through <a href="https://github.com/servirtium/testcontainers-ae">testcontainers-ae</a>;</span></li>
+      <li class="flex gap-2"><span class="text-brand-500">&middot;</span> <span>a <strong>Joomla 6</strong> web-services API, and a Bruno collection of its examples converted to tapes;</span></li>
+      <li class="flex gap-2"><span class="text-brand-500">&middot;</span> <span><strong>NTLM and Negotiate</strong> handshakes, with a README on what record and playback do with them.</span></li>
+    </ul>
+  </div>
+</div>

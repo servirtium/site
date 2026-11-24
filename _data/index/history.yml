@@ -1,6 +1,17 @@
 # history section data
 # if you don't have language feature(language.yml is empty), ignore "i18n" items
 - name:
+    detail: Servirtium 2 - one engine, thirty languages
+  desc:
+    detail: "The per-language libraries give way to servirtium-vcr: a single engine with a C ABI and thin bindings, byte-identical tapes, redaction, volatile values, a standalone CLI. Release 2.0.0-alpha.20 (November 2026) adds Commit()/Discard() for recordings, rewrite_upstream_base, NTLM-safe recording and .NET Framework 4.8 support"
+  date:
+    detail: 2026
+  job:
+    detail: servirtium-vcr
+  icon: fa-plus-square
+  present: true
+
+- name:
     detail: Servirtium beta Released
   desc:
     detail: "Markdown record/playback syntax, a Java library, and examples: released. The key git-diff leveraging \"TCK\" (see below) aspect talked about too"
@@ -9,7 +20,6 @@
   job:
     detail: Servirtium-Java
   icon: fa-plus-square
-  present: true
 
 - name:
     detail: Service Virtualization the way it was
