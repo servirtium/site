@@ -1374,7 +1374,7 @@
 
     The release also carries `ae add` binary packages (the same libraries under `servirtium_vcr-<tag>-...` names
     plus an `aether.toml`) for Aether programs. Verified against `gh release view` for the alpha.20 asset
-    names, and `release/README.md`, `release/targets.env` and `release/toolchain.env` (Aether v0.941.0, aeb
+    names, and `release/README.md`, `release/targets.env` and `release/toolchain.env` (Aether v0.944.0, aeb
     v0.348, zig 0.17.1) for the rest; I did not run the build.
   docs:
   - release/README.md
